@@ -1,0 +1,7 @@
+{
+  "name": "LiftPath",
+  "description": "LiftPath — lộ trình tập luyện cá nhân không giới hạn tuần.",
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
