@@ -21,8 +21,26 @@ jobs:
       - name: Verify and extract payload
         shell: bash
         run: |
-          cat .v3-payload/part-* | base64 --decode > /tmp/liftpath-v3.tar.gz
-          echo "31f334fca1a6269b1d433e1912c76ee35cb72b9b73e599d1fd3262ad92a7c225  /tmp/liftpath-v3.tar.gz" | sha256sum -c -
+          cat > /tmp/parts.sha256 <<'EOF'
+          1bc986b94814baee2ee0020a5362302fedd778136211ab904b94da1a06e39ef6  .v3-payload/part-00
+          affaa828b66226c9a56b09201b9df6e6b738e2c386fee3a132f10a4cb0919c55  .v3-payload/part-01
+          7f34ddb6d005b97b0e49a536c492693e376da2ccfd8781debaa430146425ac13  .v3-payload/part-02
+          eca65eb18ab5a035e0daa7ff3c226b87b02fa873dc34c3c89c6fa75b6576cb19  .v3-payload/part-03
+          d026ccb81a3d0cc93b88e0b5e2ddbbe8ad84975f82d03e74511eb6e15a2f9f95  .v3-payload/part-04
+          e02105775f0971e50ee7b76b7f2cf230a76ca5751352002232b677a372167636  .v3-payload/part-05
+          6b85c2f46746d0f86529a1b2450e19d2152260ed879685b02e063bb1aa9f7258  .v3-payload/part-06
+          b071787ed9c9841ce9da15e0af0ca4db2c4a97f46407772b2c628827c50acb87  .v3-payload/part-07
+          2c0e128aa62d7efe5d06e143f24e0ad958eb2262dc70a619caecd1f584d7cb76  .v3-payload/part-08
+          EOF
+          sha256sum -c /tmp/parts.sha256
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64, hashlib
+          encoded = ''.join(Path('.v3-payload', f'part-{index:02d}').read_text() for index in range(9))
+          payload = base64.b64decode(encoded, validate=True)
+          assert hashlib.sha256(payload).hexdigest() == '31f334fca1a6269b1d433e1912c76ee35cb72b9b73e599d1fd3262ad92a7c225'
+          Path('/tmp/liftpath-v3.tar.gz').write_bytes(payload)
+          PY
           tar -xzf /tmp/liftpath-v3.tar.gz -C .
           rm -rf .v3-payload v3-payload.ready
       - name: Commit implementation
