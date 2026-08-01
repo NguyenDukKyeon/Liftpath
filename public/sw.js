@@ -1,4 +1,4 @@
-const CACHE_NAME = "liftpath-shell-v5";
+const CACHE_NAME = "liftpath-shell-v6";
 const scopeUrl = new URL("./", self.registration.scope).href;
 const appIconUrl = new URL("app-icon.svg?v=2", self.registration.scope).href;
 const shellAssets = [scopeUrl, new URL("manifest.webmanifest", self.registration.scope).href, appIconUrl];
