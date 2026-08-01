@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#080a0f" />
-    <meta name="description" content="LiftPath — lịch tập, nhật ký set và theo dõi tiến bộ cá nhân." />
+    <meta name="theme-color" content="#f4f6f1" />
+    <meta name="description" content="LiftPath — giáo án 3, 4 hoặc 6 buổi, nhật ký từng hiệp và theo dõi tiến bộ cá nhân." />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -12,7 +12,23 @@
     <link rel="icon" href="%BASE_URL%icon-192.png" />
     <link rel="apple-touch-icon" href="%BASE_URL%icon-180.png" />
     <link rel="manifest" href="%BASE_URL%manifest.webmanifest" />
-    <title>LiftPath — Tập đúng hướng</title>
+    <script>
+      (() => {
+        try {
+          const saved = JSON.parse(localStorage.getItem("liftpath-personal-v2") || "null");
+          const preference = saved?.settings?.theme || "system";
+          const resolved = preference === "system"
+            ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+            : preference;
+          document.documentElement.dataset.theme = resolved;
+          document.documentElement.style.colorScheme = resolved;
+          document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "dark" ? "#0b0e13" : "#f4f6f1");
+        } catch {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+    <title>LiftPath — Giáo án tập linh hoạt</title>
   </head>
   <body>
     <div id="root"></div>
