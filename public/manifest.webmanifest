@@ -1,12 +1,12 @@
 {
-  "name": "LiftPath — Tập luyện cá nhân",
+  "name": "LiftPath — Personal Progression Coach",
   "short_name": "LiftPath",
-  "description": "Lên lịch, ghi từng hiệp và theo dõi tiến bộ tập luyện cá nhân.",
+  "description": "Ghi từng hiệp, theo dõi tiến bộ, cá nhân hóa giáo án và backup dữ liệu tập luyện.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#080a0f",
-  "theme_color": "#080a0f",
+  "background_color": "#f3f5f0",
+  "theme_color": "#52752b",
   "lang": "vi",
   "categories": ["fitness", "health", "lifestyle"],
   "icons": [

@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#f4f6f1" />
-    <meta name="description" content="LiftPath — giáo án 3, 4 hoặc 6 buổi, nhật ký từng hiệp và theo dõi tiến bộ cá nhân." />
+    <meta name="theme-color" content="#f3f5f0" />
+    <meta name="description" content="LiftPath 3.0 — workout tracker, progression coach, custom programs, backup và đồng bộ tùy chọn." />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -15,20 +15,21 @@
     <script>
       (() => {
         try {
-          const saved = JSON.parse(localStorage.getItem("liftpath-personal-v2") || "null");
-          const preference = saved?.settings?.theme || "system";
+          const current = JSON.parse(localStorage.getItem("liftpath-personal-v3") || "null");
+          const legacy = JSON.parse(localStorage.getItem("liftpath-personal-v2") || "null");
+          const preference = current?.settings?.theme || legacy?.settings?.theme || "system";
           const resolved = preference === "system"
             ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
             : preference;
           document.documentElement.dataset.theme = resolved;
           document.documentElement.style.colorScheme = resolved;
-          document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "dark" ? "#0b0e13" : "#f4f6f1");
+          document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "dark" ? "#0b0e13" : "#f3f5f0");
         } catch {
           document.documentElement.dataset.theme = "light";
         }
       })();
     </script>
-    <title>LiftPath — Giáo án tập linh hoạt</title>
+    <title>LiftPath 3.0 — Personal Progression Coach</title>
   </head>
   <body>
     <div id="root"></div>
