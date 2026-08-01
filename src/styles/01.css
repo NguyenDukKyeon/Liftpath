@@ -1,0 +1,460 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #f6f7f9;
+  background: #080a0f;
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --bg: #080a0f;
+  --surface: #10131a;
+  --surface-raised: #151922;
+  --surface-soft: #1a1f2a;
+  --surface-hover: #202633;
+  --line: rgba(255, 255, 255, 0.085);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --text: #f6f7f9;
+  --text-soft: #c6cad3;
+  --muted: #858c9c;
+  --accent: #c8f45d;
+  --accent-strong: #aee52b;
+  --accent-ink: #111609;
+  --accent-soft: rgba(200, 244, 93, 0.12);
+  --blue: #78a7ff;
+  --blue-soft: rgba(120, 167, 255, 0.12);
+  --orange: #ff9d66;
+  --orange-soft: rgba(255, 157, 102, 0.12);
+  --purple: #b99cff;
+  --purple-soft: rgba(185, 156, 255, 0.12);
+  --danger: #ff7878;
+  --danger-soft: rgba(255, 120, 120, 0.11);
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+  --radius-xl: 26px;
+  --radius-lg: 20px;
+  --radius-md: 15px;
+  --radius-sm: 11px;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--bg);
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 70% -10%, rgba(93, 118, 77, 0.12), transparent 34rem),
+    var(--bg);
+  color: var(--text);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+}
+
+button,
+a,
+input,
+select,
+summary {
+  outline: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  box-shadow: 0 0 0 3px rgba(200, 244, 93, 0.28);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+strong {
+  letter-spacing: -0.025em;
+}
+
+svg {
+  flex: 0 0 auto;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-frame {
+  min-height: 100vh;
+  max-width: 760px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.desktop-rail {
+  display: none;
+}
+
+.app-header {
+  padding: max(22px, calc(env(safe-area-inset-top) + 12px)) 20px 18px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.brand-mark {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--accent-ink);
+  background: var(--accent);
+  box-shadow: 0 10px 30px rgba(200, 244, 93, 0.16);
+}
+
+.brand-copy {
+  display: grid;
+  gap: 1px;
+}
+
+.brand-copy strong {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.brand-copy small {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.page-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.page-heading h1 {
+  margin-top: 7px;
+  font-size: clamp(28px, 8vw, 38px);
+  line-height: 1.04;
+}
+
+.page-heading p {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.eyebrow {
+  display: block;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  line-height: 1.35;
+}
+
+.icon-button {
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--text-soft);
+  background: var(--surface-raised);
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.icon-button:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+  background: var(--surface-hover);
+}
+
+.icon-button:active,
+.primary-button:active,
+.secondary-button:active,
+.danger-button:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.icon-button.subtle {
+  background: transparent;
+}
+
+.page-content {
+  padding: 0 20px max(112px, calc(env(safe-area-inset-bottom) + 88px));
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(145deg, rgba(22, 26, 35, 0.98), rgba(15, 18, 25, 0.98));
+  box-shadow: var(--shadow);
+}
+
+.grow {
+  min-width: 0;
+  flex: 1;
+}
+
+.page-enter {
+  animation: page-enter 260ms ease both;
+}
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.primary-button,
+.secondary-button,
+.danger-button {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 17px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 13px;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.primary-button {
+  color: var(--accent-ink);
+  background: var(--accent);
+}
+
+.primary-button:hover {
+  background: var(--accent-strong);
+}
+
+.primary-button.small {
+  min-height: 40px;
+  padding: 0 14px;
+}
+
+.primary-button.full {
+  width: 100%;
+}
+
+.secondary-button {
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.secondary-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.danger-button {
+  color: #fff;
+  background: #b63e46;
+}
+
+.workout-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 92px;
+  gap: 20px;
+  overflow: hidden;
+  padding: 24px;
+  border: 1px solid rgba(200, 244, 93, 0.18);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 86% 4%, rgba(200, 244, 93, 0.14), transparent 14rem),
+    linear-gradient(145deg, #151b14, #11141a 68%);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.32);
+}
+
+.hero-copy {
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-soft);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 5px rgba(200, 244, 93, 0.09);
+}
+
+.workout-hero h2 {
+  max-width: 480px;
+  margin-top: 16px;
+  font-size: clamp(25px, 7vw, 38px);
+  line-height: 1.05;
+}
+
+.workout-hero p {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.hero-visual {
+  position: relative;
+  display: grid;
+  width: 92px;
+  height: 128px;
+  align-self: center;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.hero-visual.lower {
+  color: var(--orange);
+  background: var(--orange-soft);
+}
+
+.hero-visual.delt {
+  color: var(--purple);
+  background: var(--purple-soft);
+}
+
+.hero-visual.core {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.hero-visual::before {
+  content: "";
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  top: -42px;
+  right: -38px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.08;
+}
+
+.hero-visual span {
+  position: absolute;
+  right: 10px;
+  bottom: 5px;
+  color: currentColor;
+  font-size: 38px;
+  font-weight: 900;
+  opacity: 0.18;
+}
+
+.weekly-card {
+  padding: 20px;
+}
+
+.weekly-card-head,
+.section-title-row,
+.program-detail-head,
+.exercise-heading,
+.body-current,
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.weekly-card-head h2,
+.section-title-row h2 {
+  margin-top: 5px;
+  font-size: 19px;
+}
+
+.week-pill {
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-soft);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.progress {
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.075);
+}
+
+.progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), #efffa5);
+  transition: width 300ms ease;
+}
+
+.weekly-card .progress {
+  margin-top: 18px;
+}
+
