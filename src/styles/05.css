@@ -1,0 +1,380 @@
+.timer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.timer-actions button {
+  min-height: 30px;
+  padding: 0 9px;
+  border-radius: 8px;
+  color: var(--text-soft);
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.timer-actions .timer-skip {
+  color: var(--accent-ink);
+  background: var(--accent);
+}
+
+.exercise-stepper {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: 16px -16px;
+  padding: 0 16px 4px;
+  scrollbar-width: none;
+}
+
+.exercise-stepper button {
+  display: flex;
+  min-width: 118px;
+  max-width: 155px;
+  min-height: 48px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  color: var(--muted);
+  background: var(--surface);
+  text-align: left;
+}
+
+.exercise-stepper button > span {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--text-soft);
+  background: var(--surface-soft);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.exercise-stepper button small {
+  overflow: hidden;
+  font-size: 8px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exercise-stepper button.active {
+  color: var(--text);
+  border-color: rgba(200, 244, 93, 0.42);
+  background: var(--accent-soft);
+}
+
+.exercise-stepper button.complete > span {
+  color: var(--accent-ink);
+  background: var(--accent);
+}
+
+.current-exercise {
+  padding: 18px;
+}
+
+.exercise-heading {
+  align-items: flex-start;
+}
+
+.exercise-heading h1 {
+  margin-top: 5px;
+  font-size: clamp(21px, 6vw, 30px);
+  line-height: 1.08;
+}
+
+.exercise-count {
+  padding: 6px 9px;
+  border-radius: 9px;
+  color: var(--muted);
+  background: var(--surface-soft);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.exercise-targets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.technique-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.technique-note > span {
+  color: var(--accent);
+}
+
+.technique-note p {
+  color: var(--text-soft);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.set-table {
+  margin-top: 18px;
+}
+
+.set-table-head,
+.set-row {
+  display: grid;
+  grid-template-columns: 36px repeat(3, minmax(0, 1fr)) 40px;
+  gap: 7px;
+  align-items: center;
+}
+
+.set-table-head {
+  padding: 0 5px 7px;
+  color: var(--muted);
+  font-size: 7px;
+  font-weight: 900;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.set-row {
+  padding: 8px 5px;
+  border-top: 1px solid var(--line);
+  border-radius: 12px;
+  transition: background 150ms ease;
+}
+
+.set-row.focused {
+  background: rgba(200, 244, 93, 0.04);
+}
+
+.set-row.complete {
+  background: rgba(200, 244, 93, 0.065);
+}
+
+.set-number {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--muted);
+  background: var(--surface-soft);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.set-row.complete .set-number {
+  color: var(--accent-ink);
+  background: var(--accent);
+}
+
+.set-row label {
+  min-width: 0;
+}
+
+.set-row label > span {
+  display: none;
+}
+
+.set-row input {
+  width: 100%;
+  min-width: 0;
+  height: 39px;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text);
+  background: var(--surface-soft);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.set-row input:focus {
+  border-color: rgba(200, 244, 93, 0.52);
+  box-shadow: 0 0 0 3px rgba(200, 244, 93, 0.08);
+}
+
+.complete-set {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 11px;
+  color: var(--accent-ink);
+  background: var(--accent);
+}
+
+.set-row.complete .complete-set {
+  color: var(--accent);
+  background: var(--accent-soft);
+  opacity: 1;
+}
+
+.set-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.set-actions button {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text-soft);
+  background: transparent;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.workout-navigation {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.workout-navigation button {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--text-soft);
+  background: var(--surface);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.workout-navigation .next-primary {
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+@media (max-width: 520px) {
+  .workout-hero {
+    grid-template-columns: minmax(0, 1fr) 70px;
+    padding: 20px;
+  }
+
+  .hero-visual {
+    width: 70px;
+    height: 108px;
+  }
+
+  .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .hero-actions .secondary-button {
+    min-height: 40px;
+  }
+
+  .program-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .program-tabs > button {
+    min-height: 58px;
+  }
+
+  .library-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rest-timer {
+    grid-template-columns: 68px minmax(0, 1fr);
+  }
+
+  .timer-actions {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+
+  .timer-actions button {
+    flex: 1;
+  }
+
+  .exercise-muscle {
+    display: none;
+  }
+}
+
+@media (max-width: 390px) {
+  .app-header,
+  .page-content {
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+
+  .metric-grid {
+    gap: 7px;
+  }
+
+  .metric-card {
+    padding: 13px 10px;
+  }
+
+  .form-grid,
+  .measurement-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .day-picker {
+    gap: 4px;
+  }
+
+  .program-detail-head {
+    align-items: flex-start;
+  }
+
+  .program-detail-head .primary-button {
+    padding: 0 10px;
+  }
+
+  .session-main > strong {
+    display: none;
+  }
+
+  .body-values {
+    gap: 11px;
+  }
+
+  .set-table-head {
+    display: none;
+  }
+
+  .set-row {
+    grid-template-columns: 30px repeat(3, minmax(0, 1fr)) 34px;
+    gap: 4px;
+  }
+
+  .set-row input {
+    height: 37px;
+    font-size: 11px;
+  }
+
+  .complete-set {
+    width: 32px;
+    height: 32px;
+  }
+}
+
