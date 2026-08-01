@@ -33,6 +33,7 @@ jobs:
           2c0e128aa62d7efe5d06e143f24e0ad958eb2262dc70a619caecd1f584d7cb76  .v3-payload/part-08
           EOF
           sha256sum -c /tmp/parts.sha256
+          cp .github/workflows/deploy.yml /tmp/deploy.yml
           python3 - <<'PY'
           from pathlib import Path
           import base64, hashlib
@@ -42,6 +43,7 @@ jobs:
           Path('/tmp/liftpath-v3.tar.gz').write_bytes(payload)
           PY
           tar -xzf /tmp/liftpath-v3.tar.gz -C .
+          cp /tmp/deploy.yml .github/workflows/deploy.yml
           rm -rf .v3-payload v3-payload.ready
       - name: Commit implementation
         shell: bash
