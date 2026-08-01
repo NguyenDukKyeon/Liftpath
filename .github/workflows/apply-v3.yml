@@ -1,17 +1,16 @@
 name: Apply LiftPath v3 payload
 
 on:
-  push:
-    branches: [agent/liftpath-v3-platform]
-    paths:
-      - v3-payload.ready
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
 jobs:
   apply:
-    if: github.actor != 'github-actions[bot]'
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'agent/liftpath-v3-platform'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout branch
