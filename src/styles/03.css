@@ -1,0 +1,516 @@
+.program-tabs small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.program-detail {
+  overflow: hidden;
+}
+
+.program-detail-head {
+  padding: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.program-detail-head h2 {
+  max-width: 440px;
+  margin-top: 6px;
+  font-size: 20px;
+}
+
+.program-detail-head p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.exercise-list {
+  padding: 0 16px;
+}
+
+.exercise-list > button {
+  display: flex;
+  width: 100%;
+  min-height: 66px;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  background: transparent;
+  text-align: left;
+}
+
+.exercise-list > button:last-child {
+  border-bottom: 0;
+}
+
+.library-tools {
+  display: grid;
+  gap: 12px;
+}
+
+.search-field {
+  display: flex;
+  min-height: 50px;
+  align-items: center;
+  gap: 10px;
+  padding: 0 15px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.search-field:focus-within {
+  border-color: rgba(200, 244, 93, 0.36);
+  box-shadow: 0 0 0 3px rgba(200, 244, 93, 0.08);
+}
+
+.search-field input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: var(--text);
+  background: transparent;
+  font-size: 12px;
+}
+
+.filter-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.filter-chips::-webkit-scrollbar,
+.exercise-stepper::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-chips button {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.filter-chips button.active {
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.library-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.library-card {
+  display: flex;
+  min-width: 0;
+  min-height: 82px;
+  align-items: center;
+  gap: 11px;
+  padding: 14px;
+  color: var(--text);
+  text-align: left;
+}
+
+.library-icon,
+.workout-exercise-icon,
+.exercise-modal-icon {
+  display: grid;
+  width: 43px;
+  height: 43px;
+  flex: 0 0 43px;
+  place-items: center;
+  border-radius: 14px;
+  color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.history-chart {
+  padding: 20px;
+}
+
+.bar-chart {
+  display: grid;
+  height: 150px;
+  grid-template-columns: repeat(6, 1fr);
+  align-items: end;
+  gap: 13px;
+  margin-top: 22px;
+}
+
+.bar-column {
+  display: grid;
+  height: 100%;
+  grid-template-rows: 18px 1fr 20px;
+  align-items: end;
+  justify-items: center;
+  gap: 5px;
+}
+
+.bar-column span,
+.bar-column small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.bar-column i {
+  width: min(100%, 28px);
+  min-height: 8px;
+  border-radius: 9px 9px 4px 4px;
+  background: linear-gradient(180deg, var(--accent), rgba(200, 244, 93, 0.25));
+}
+
+.session-list {
+  display: grid;
+  gap: 11px;
+}
+
+.session-card {
+  overflow: hidden;
+  padding: 17px;
+}
+
+.session-main {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.session-main h2 {
+  margin-top: 3px;
+  font-size: 16px;
+}
+
+.session-main small,
+.session-main p {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.session-main p {
+  margin-top: 4px;
+}
+
+.session-main > strong {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.session-card details {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.session-card summary {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-soft);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 800;
+  list-style: none;
+}
+
+.session-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.session-card details[open] summary svg {
+  transform: rotate(90deg);
+}
+
+.session-exercises {
+  display: grid;
+  gap: 10px;
+  padding: 2px 0 12px;
+}
+
+.session-exercises > div {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.session-exercises strong,
+.session-exercises small {
+  display: block;
+}
+
+.session-exercises strong {
+  font-size: 10px;
+}
+
+.session-exercises small,
+.session-exercises span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.session-exercises span {
+  text-align: right;
+}
+
+.session-actions {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.session-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.session-actions .danger-text {
+  color: var(--danger);
+}
+
+.body-overview {
+  overflow: hidden;
+  padding: 18px;
+}
+
+.body-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.body-tabs button {
+  min-height: 34px;
+  flex: 1;
+  padding: 0 10px;
+  border-radius: 10px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.body-tabs button.active {
+  color: var(--text);
+  background: var(--surface-soft);
+}
+
+.body-current {
+  align-items: flex-start;
+  margin-top: 26px;
+}
+
+.body-current > div > strong {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: clamp(38px, 11vw, 56px);
+}
+
+.body-current > div > strong small {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.body-current > svg {
+  color: var(--accent);
+}
+
+.delta {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.delta.up {
+  color: var(--orange);
+}
+
+.delta.down {
+  color: var(--accent);
+}
+
+.mini-chart {
+  width: 100%;
+  height: 130px;
+  margin-top: 16px;
+  color: var(--accent);
+  overflow: visible;
+}
+
+.empty-chart {
+  display: grid;
+  min-height: 120px;
+  margin-top: 16px;
+  place-items: center;
+  border: 1px dashed var(--line-strong);
+  border-radius: 16px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.body-form {
+  padding: 20px;
+}
+
+.body-form input[type="date"] {
+  width: auto;
+  max-width: 150px;
+}
+
+.measurement-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.unit-input {
+  position: relative;
+}
+
+.unit-input input {
+  padding-right: 42px;
+}
+
+.unit-input span {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  color: var(--muted);
+  font-size: 10px;
+  transform: translateY(-50%);
+}
+
+.body-history {
+  display: grid;
+  gap: 10px;
+}
+
+.body-date {
+  display: grid;
+  width: 45px;
+  height: 50px;
+  flex: 0 0 45px;
+  place-items: center;
+  align-content: center;
+  border-radius: 13px;
+  background: var(--surface-soft);
+}
+
+.body-date strong {
+  font-size: 17px;
+}
+
+.body-date small {
+  color: var(--muted);
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.body-values {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+}
+
+.body-values > span {
+  flex: 0 0 auto;
+}
+
+.body-values small,
+.body-values strong {
+  display: block;
+}
+
+.body-values small {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.body-values strong {
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+.inline-confirm {
+  display: flex;
+  gap: 5px;
+}
+
+.inline-confirm button {
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 9px;
+  color: var(--text-soft);
+  background: var(--surface-soft);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.inline-confirm button.danger {
+  color: #fff;
+  background: #9f3941;
+}
+
+.empty-state {
+  display: grid;
+  min-height: 260px;
+  place-items: center;
+  align-content: center;
+  padding: 28px;
+  text-align: center;
+}
+
+.empty-state > span {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 19px;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.empty-state h2 {
+  margin-top: 17px;
+  font-size: 19px;
+}
+
+.empty-state p {
+  max-width: 330px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+

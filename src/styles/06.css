@@ -1,0 +1,126 @@
+@media (min-width: 900px) {
+  .app-shell {
+    display: grid;
+    grid-template-columns: 238px minmax(0, 1fr);
+  }
+
+  .desktop-rail {
+    position: sticky;
+    top: 0;
+    display: flex;
+    height: 100vh;
+    flex-direction: column;
+    padding: 26px 18px;
+    border-right: 1px solid var(--line);
+    background: rgba(11, 13, 18, 0.86);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .brand.compact {
+    padding: 0 7px;
+  }
+
+  .rail-nav {
+    display: grid;
+    gap: 6px;
+    margin-top: 42px;
+  }
+
+  .rail-nav button,
+  .rail-settings {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    gap: 12px;
+    padding: 0 14px;
+    border-radius: 14px;
+    color: var(--muted);
+    background: transparent;
+    font-size: 12px;
+    font-weight: 800;
+    text-align: left;
+  }
+
+  .rail-nav button.active {
+    color: var(--accent-ink);
+    background: var(--accent);
+  }
+
+  .rail-settings {
+    margin-top: auto;
+    border: 1px solid var(--line);
+  }
+
+  .app-frame {
+    width: 100%;
+    max-width: 1040px;
+    margin: 0;
+  }
+
+  .app-header {
+    padding: 36px 42px 22px;
+  }
+
+  .app-header > .brand,
+  .mobile-settings,
+  .bottom-nav {
+    display: none;
+  }
+
+  .page-heading {
+    margin-top: 0;
+  }
+
+  .page-content {
+    padding: 0 42px 50px;
+  }
+
+  .workout-hero {
+    grid-template-columns: minmax(0, 1fr) 160px;
+    padding: 34px;
+  }
+
+  .hero-visual {
+    width: 150px;
+    height: 160px;
+  }
+
+  .metric-card {
+    padding: 20px;
+  }
+
+  .modal-backdrop {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .modal {
+    border-bottom: 1px solid var(--line-strong);
+    border-radius: 26px;
+  }
+
+  .modal-handle {
+    display: none;
+  }
+
+  .workout-content {
+    padding-top: 22px;
+  }
+
+  .workout-topbar {
+    padding-right: max(24px, calc((100vw - 820px) / 2));
+    padding-left: max(24px, calc((100vw - 820px) / 2));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
