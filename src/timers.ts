@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { nextScheduledWorkout } from "./data";
-import type { Session, Settings } from "./types";
+import { nextScheduledWorkout } from "./data.js";
+import type { Session, Settings, TrainingProgram } from "./types.js";
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -23,7 +23,7 @@ async function notify(title: string, body: string, tag: string) {
     if (registration) await registration.showNotification(title, options);
     else new Notification(title, options);
   } catch {
-    // Browser policies vary by platform.
+    // Notification support varies by browser and platform.
   }
 }
 
@@ -53,19 +53,19 @@ export function useRestTimer(settings: Settings, permissionRevision: number) {
       audioRef.current ??= new AudioCtor();
       const context = audioRef.current;
       void context.resume();
-      [0, 0.24, 0.48].forEach((delay, index) => {
+      [0, 0.22, 0.44].forEach((delay, index) => {
         const oscillator = context.createOscillator();
         const gain = context.createGain();
         oscillator.frequency.value = index === 1 ? 1320 : 880;
         gain.gain.setValueAtTime(0.001, context.currentTime + delay);
-        gain.gain.linearRampToValueAtTime(0.32, context.currentTime + delay + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + delay + 0.32);
+        gain.gain.linearRampToValueAtTime(0.25, context.currentTime + delay + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + delay + 0.3);
         oscillator.connect(gain).connect(context.destination);
         oscillator.start(context.currentTime + delay);
-        oscillator.stop(context.currentTime + delay + 0.35);
+        oscillator.stop(context.currentTime + delay + 0.32);
       });
     } catch {
-      // Audio may be blocked until a user gesture.
+      // Audio can be blocked until a user gesture.
     }
   }, []);
 
@@ -73,7 +73,7 @@ export function useRestTimer(settings: Settings, permissionRevision: number) {
     if (!endsAt || fired.current || now < endsAt) return;
     fired.current = true;
     if (settings.sound) beep();
-    if (settings.vibration && "vibrate" in navigator) navigator.vibrate([180, 90, 180, 90, 350]);
+    if (settings.vibration && "vibrate" in navigator) navigator.vibrate([160, 80, 160]);
     if (settings.notify) void notify("LiftPath · Hết giờ nghỉ", "Bắt đầu hiệp tiếp theo.", "liftpath-rest");
   }, [beep, endsAt, now, settings.notify, settings.sound, settings.vibration]);
 
@@ -112,11 +112,9 @@ export function useRestTimer(settings: Settings, permissionRevision: number) {
   const addSeconds = useCallback((delta: number) => {
     if (!endsAt || !Number.isFinite(delta)) return;
     const current = Date.now();
-    const finished = endsAt <= current;
-    if (finished && delta < 0) return;
     const base = delta > 0 ? Math.max(endsAt, current) : endsAt;
     setEndsAt(Math.max(current, base + delta * 1000));
-    setDuration((value) => finished && delta > 0 ? Math.max(1, delta) : Math.max(1, value + delta));
+    setDuration((value) => Math.max(1, value + delta));
     setNow(current);
     fired.current = false;
   }, [endsAt]);
@@ -126,21 +124,63 @@ export function useRestTimer(settings: Settings, permissionRevision: number) {
   return { active: endsAt !== null, remaining, progress, start, cancel, addSeconds };
 }
 
-export function useTrainingReminder(settings: Settings, history: Session[], permissionRevision: number) {
+export function useTrainingReminder(
+  settings: Settings,
+  history: Session[],
+  customPrograms: TrainingProgram[],
+  permissionRevision: number,
+) {
   useEffect(() => {
     if (!settings.notify || !settings.scheduleReminders || !("Notification" in window) || Notification.permission !== "granted") return;
     let timeout: number | undefined;
     let cancelled = false;
     const arm = () => {
-      const next = nextScheduledWorkout(settings, history);
+      const next = nextScheduledWorkout(settings, history, customPrograms);
       if (!next || cancelled) return;
       timeout = window.setTimeout(() => {
         if (cancelled) return;
-        void notify(`Đến giờ cho buổi ${next.dayId} 💪`, "Bạn chỉ cần bắt đầu. LiftPath sẽ dẫn từng hiệp còn lại.", "liftpath-training");
+        void notify(`Đến giờ tập · ${next.dayId}`, "Mở LiftPath để bắt đầu buổi tập.", "liftpath-training");
         arm();
       }, Math.max(0, Math.min(2_147_000_000, next.date.getTime() - Date.now())));
     };
     arm();
     return () => { cancelled = true; if (timeout) window.clearTimeout(timeout); };
-  }, [history, permissionRevision, settings]);
+  }, [customPrograms, history, permissionRevision, settings]);
+}
+
+export function useWakeLock(active: boolean) {
+  const [supported] = useState(() => "wakeLock" in navigator);
+  const [locked, setLocked] = useState(false);
+
+  useEffect(() => {
+    if (!active || !supported) return;
+    let disposed = false;
+    let lock: { release: () => Promise<void>; addEventListener?: (type: string, handler: () => void) => void } | null = null;
+    const request = async () => {
+      if (disposed || lock) return;
+      try {
+        const wakeLock = (navigator as Navigator & { wakeLock?: { request: (type: "screen") => Promise<typeof lock> } }).wakeLock;
+        lock = await wakeLock?.request("screen") ?? null;
+        if (disposed) await lock?.release();
+        else {
+          setLocked(Boolean(lock));
+          lock?.addEventListener?.("release", () => { lock = null; setLocked(false); });
+        }
+      } catch {
+        lock = null;
+        setLocked(false);
+      }
+    };
+    void request();
+    const onVisibility = () => { if (document.visibilityState === "visible") void request(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      disposed = true;
+      document.removeEventListener("visibilitychange", onVisibility);
+      void lock?.release();
+      lock = null;
+    };
+  }, [active, supported]);
+
+  return { supported, locked };
 }
