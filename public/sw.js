@@ -1,6 +1,7 @@
-const CACHE_NAME = "liftpath-shell-v4";
+const CACHE_NAME = "liftpath-shell-v5";
 const scopeUrl = new URL("./", self.registration.scope).href;
-const shellAssets = [scopeUrl, new URL("manifest.webmanifest", self.registration.scope).href, new URL("icon-192.png", self.registration.scope).href];
+const appIconUrl = new URL("app-icon.svg?v=2", self.registration.scope).href;
+const shellAssets = [scopeUrl, new URL("manifest.webmanifest", self.registration.scope).href, appIconUrl];
 let restTimeout = null;
 
 self.addEventListener("install", (event) => {
@@ -43,7 +44,7 @@ self.addEventListener("message", (event) => {
     if (restTimeout !== null) clearTimeout(restTimeout);
     restTimeout = setTimeout(() => {
       void self.registration.showNotification("LiftPath · Hết giờ nghỉ", {
-        body: "Bắt đầu hiệp tiếp theo.", icon: "icon-192.png", tag: "liftpath-rest", data: { url: self.registration.scope },
+        body: "Bắt đầu hiệp tiếp theo.", icon: appIconUrl, tag: "liftpath-rest", data: { url: self.registration.scope },
       }).catch(() => {});
       restTimeout = null;
     }, Math.max(0, data.endsAt - Date.now()));
