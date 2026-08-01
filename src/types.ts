@@ -1,5 +1,7 @@
-export type DayId = "A" | "B" | "C";
-export type ExerciseType = "upper" | "lower" | "delt" | "core";
+export type DayId = string;
+export type ProgramId = "full-body-3" | "upper-lower-4" | "ppl-6";
+export type ThemePreference = "system" | "light" | "dark";
+export type ExerciseType = "upper" | "lower" | "delt" | "arms" | "core";
 
 export type Exercise = {
   id: string;
@@ -17,6 +19,27 @@ export type Exercise = {
   suffix: string;
 };
 
+export type WorkoutDay = {
+  id: DayId;
+  name: string;
+  shortName: string;
+  focus: string;
+  exercises: string[];
+};
+
+export type TrainingProgram = {
+  id: ProgramId;
+  name: string;
+  shortName: string;
+  daysPerWeek: 3 | 4 | 6;
+  level: string;
+  description: string;
+  sessionMinutes: string;
+  scheduleLabel: string;
+  recommendedDays: number[];
+  workouts: WorkoutDay[];
+};
+
 export type SetEntry = {
   weight: string;
   reps: string;
@@ -32,6 +55,7 @@ export type ExerciseEntry = {
 
 export type Draft = {
   id: string;
+  programId?: ProgramId;
   dayId: DayId;
   startedAt: string;
   currentEx: number;
@@ -40,6 +64,7 @@ export type Draft = {
 
 export type Session = {
   id: string;
+  programId?: ProgramId;
   dayId: DayId;
   startedAt: string;
   endedAt: string;
@@ -57,6 +82,8 @@ export type Settings = {
   weeklyGoal: number;
   trainingDays: number[];
   reminderTime: string;
+  programId: ProgramId;
+  theme: ThemePreference;
 };
 
 export type BodyStat = {
@@ -74,4 +101,3 @@ export type AppState = {
   history: Session[];
   bodyStats: BodyStat[];
 };
-
