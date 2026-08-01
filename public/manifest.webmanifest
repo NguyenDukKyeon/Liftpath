@@ -11,7 +11,7 @@
   "categories": ["fitness", "health", "lifestyle"],
   "icons": [
     {
-      "src": "app-icon.svg?v=2",
+      "src": "app-icon-v3.svg?v=3",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
