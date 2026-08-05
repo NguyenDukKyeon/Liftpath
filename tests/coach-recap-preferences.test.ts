@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { defaultState, normalizeState } from "../src/domain/storage.js";
 import { applyPreferenceSignal } from "../src/features/coach/preferences.js";
-import { buildWorkoutRecap } from "../src/features/coach/recap.js";
-import type { ExerciseEntry, Session } from "../src/types.js";
+import { buildWorkoutRecap, isWorkoutCoachRecap } from "../src/features/coach/recap.js";
+import { finishGuidedWorkoutState } from "../src/features/workout/completion.js";
+import type { AppState, Draft, ExerciseEntry, Session } from "../src/types.js";
 
 const entry = (completedSets = 3, plannedSets = 3): ExerciseEntry => ({
   exerciseId: "db_bench",
@@ -122,6 +124,25 @@ test("neutral signal removes the stored preference", () => {
   assert.deepEqual(next, []);
 });
 
+test("explicit preferences survive storage normalization", () => {
+  const state = defaultState();
+  const normalized = normalizeState({
+    ...state,
+    exercisePreferences: [{
+      exerciseId: "machine_press",
+      status: "preferred",
+      reason: "comfort",
+      updatedAt: "2026-08-05T14:00:00.000Z",
+    }],
+  });
+  assert.deepEqual(normalized.exercisePreferences, [{
+    exerciseId: "machine_press",
+    status: "preferred",
+    reason: "comfort",
+    updatedAt: "2026-08-05T14:00:00.000Z",
+  }]);
+});
+
 test("recap answers what went well, what needs attention, and what changes next", () => {
   const recap = buildWorkoutRecap({ session: session(), historyBefore: [], readiness: null });
   assert.ok(recap.wentWell.length > 0);
@@ -140,4 +161,49 @@ test("low recovery feedback appears in attention instead of progression praise",
   const tired = { ...session(), feedback: { energy: 1 as const, soreness: 5 as const, note: "Rất mệt" } };
   const recap = buildWorkoutRecap({ session: tired, historyBefore: [], readiness: null });
   assert.ok(recap.attention.some((item) => item.reasonCode === "recap-recovery-attention"));
+});
+
+test("completion persists an immutable recap and readiness evidence snapshot", () => {
+  const base = defaultState();
+  const readiness = {
+    input: {
+      energy: "normal" as const,
+      soreness: "manageable" as const,
+      pain: null,
+      availableMinutes: 60,
+    },
+    appliedReasonCodes: ["no-adjustment-needed" as const],
+  };
+  const draft: Draft & { readiness: typeof readiness } = {
+    id: "draft-current",
+    programId: "full-body-3",
+    programSnapshot: {
+      id: "full-body-3",
+      name: "Full Body 3 buổi",
+      version: 4,
+      dayId: "FB-A",
+      workoutName: "Full Body A",
+    },
+    dayId: "FB-A",
+    startedAt: "2026-08-05T12:00:00.000Z",
+    currentEx: 0,
+    exercises: [entry()],
+    note: "",
+    weeklyGoalAtStart: 3,
+    readiness,
+  };
+  const state: AppState = { ...base, draft };
+  const next = finishGuidedWorkoutState(
+    state,
+    { energy: 4, soreness: 2, note: "Ổn" },
+    "2026-08-05T13:00:00.000Z",
+  );
+  assert.ok(next);
+  assert.equal(next.draft, null);
+  assert.equal(next.history[0].id, "draft-current");
+  assert.ok(next.lastRecap && isWorkoutCoachRecap(next.lastRecap));
+  if (!next.lastRecap || !isWorkoutCoachRecap(next.lastRecap)) return;
+  assert.deepEqual(next.lastRecap.readinessEvidence, readiness);
+  readiness.input.energy = "low";
+  assert.equal((next.lastRecap.readinessEvidence as typeof readiness).input.energy, "normal");
 });
