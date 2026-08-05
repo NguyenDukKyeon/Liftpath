@@ -33,7 +33,7 @@ const previousCandidate = (
 };
 
 const previousLabel = (set: SetEntry | null, mode: TrackingMode) => {
-  if (!set) return "Chưa có";
+  if (!set) return "Chưa có dữ liệu";
   if (mode === "duration") return `${set.reps || "—"} giây`;
   if (mode === "distance") return `${set.reps || "—"} m`;
   if (mode === "bodyweight-reps") return `${set.reps || "—"} reps`;
@@ -84,6 +84,7 @@ export function SetTable({
   const mode = trackingModeFor(entry);
   const loadColumn = hasLoad(mode);
   const increment = entry.snapshot.incrementKg > 0 ? entry.snapshot.incrementKg : 1;
+  const activeSetIndex = entry.sets.findIndex((set) => !set.done);
 
   const finishSet = (setIndex: number) => {
     const rest = completeSet(exerciseIndex, setIndex);
@@ -91,7 +92,7 @@ export function SetTable({
   };
 
   return (
-    <div className={`guided-set-table mode-${mode}`} role="table" aria-label={`Các hiệp ${entry.snapshot.name}`}>
+    <div className={`guided-set-table focused-set-table mode-${mode}`} role="table" aria-label={`Các hiệp ${entry.snapshot.name}`}>
       <div className="guided-set-head" role="row">
         <span role="columnheader">Set</span>
         <span role="columnheader">Trước</span>
@@ -104,10 +105,11 @@ export function SetTable({
       {entry.sets.map((set, setIndex) => {
         const previous = previousCandidate(previousEntry, setIndex, set.kind);
         const canComplete = !set.done && isCompletableSet(set);
+        const active = !set.done && setIndex === activeSetIndex;
         return (
-          <div className={`guided-set-row ${set.done ? "complete" : ""}`} role="row" key={set.id}>
+          <div className={`guided-set-row ${set.done ? "complete" : ""} ${active ? "active" : ""}`} role="row" key={set.id}>
             <div className="guided-set-index" role="cell">
-              <strong>{setIndex + 1}</strong>
+              <strong>Set {setIndex + 1}</strong>
               <select
                 aria-label={`Loại hiệp ${setIndex + 1}`}
                 value={set.kind}
@@ -128,12 +130,13 @@ export function SetTable({
                 onClick={() => copyPreviousSet(exerciseIndex, setIndex)}
               >
                 <Copy size={14} />
-                <span>{previousLabel(previous, mode)}</span>
+                <span><small>Trước đó</small>{previousLabel(previous, mode)}</span>
               </button>
             </div>
 
             {loadColumn && (
-              <div role="cell" className="load-cell">
+              <div role="cell" className="load-cell focused-number-control">
+                <span className="mobile-field-label">{loadLabel(mode)}</span>
                 <button
                   type="button"
                   aria-label={`Giảm ${increment} kg ở hiệp ${setIndex + 1}`}
@@ -141,7 +144,7 @@ export function SetTable({
                   onClick={() => updateSet(exerciseIndex, setIndex, {
                     weight: String(Math.max(0, (Number(set.weight) || 0) - increment)),
                   })}
-                ><Minus size={14} /></button>
+                ><Minus size={15} /></button>
                 <input
                   aria-label={`${loadLabel(mode)} hiệp ${setIndex + 1}`}
                   type="number"
@@ -160,11 +163,12 @@ export function SetTable({
                   onClick={() => updateSet(exerciseIndex, setIndex, {
                     weight: String((Number(set.weight) || 0) + increment),
                   })}
-                ><Plus size={14} /></button>
+                ><Plus size={15} /></button>
               </div>
             )}
 
-            <div role="cell">
+            <div role="cell" className="focused-metric-field">
+              <span className="mobile-field-label">{metricLabel(mode)}</span>
               <input
                 aria-label={`${metricLabel(mode)} hiệp ${setIndex + 1}`}
                 type="number"
@@ -178,7 +182,8 @@ export function SetTable({
               />
             </div>
 
-            <div role="cell">
+            <div role="cell" className="focused-effort-field">
+              <span className="mobile-field-label">Gắng sức · tùy chọn</span>
               {effortLanguage === "simple-rir" ? (
                 <select
                   aria-label={`Số reps còn dự trữ hiệp ${setIndex + 1}, tùy chọn`}
@@ -205,7 +210,7 @@ export function SetTable({
                   step="0.5"
                   value={set.rpe}
                   disabled={set.done}
-                  placeholder="Tuỳ chọn"
+                  placeholder="Tùy chọn"
                   onChange={(event) => updateSet(exerciseIndex, setIndex, { rpe: event.target.value })}
                 />
               )}
@@ -214,7 +219,7 @@ export function SetTable({
             <div role="cell" className="guided-set-actions">
               {set.done ? (
                 <button type="button" aria-label={`Hoàn tác hiệp ${setIndex + 1}`} onClick={() => undoSet(exerciseIndex, setIndex)}>
-                  <Undo2 size={17} />
+                  <Undo2 size={17} /><span>Hoàn tác</span>
                 </button>
               ) : (
                 <button
@@ -224,7 +229,7 @@ export function SetTable({
                   aria-label={`Hoàn thành hiệp ${setIndex + 1}`}
                   onClick={() => finishSet(setIndex)}
                 >
-                  <Check size={18} />
+                  <Check size={18} /><span>Hoàn thành set</span>
                 </button>
               )}
             </div>
