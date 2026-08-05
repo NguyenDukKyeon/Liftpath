@@ -4,6 +4,7 @@ import App from "./App.js";
 import { ErrorBoundary } from "./components/ErrorBoundary.js";
 import "./styles.css";
 import "./features/workout/workout-guided.css";
+import "./features/workout/recap.css";
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
