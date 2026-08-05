@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { migrateV3ToV4 } from "../src/domain/migrations/v3-to-v4.js";
+import { LEGACY_KEYS, STORAGE_KEY, normalizeState } from "../src/domain/storage.js";
 import { expectedV3Totals, v3StateFixture } from "./fixtures/v3-state.js";
 
 test("migrates a complete v3 state without losing user-visible records", () => {
@@ -38,4 +39,21 @@ test("isolates malformed records and emits warnings", () => {
   const { state, warnings } = migrateV3ToV4(malformed);
   assert.equal(state.history.length, 1);
   assert.ok(warnings.some((warning) => warning.code === "history-record-dropped"));
+});
+
+test("storage uses the v4 key and checks v3 before older legacy keys", () => {
+  assert.equal(STORAGE_KEY, "liftpath-personal-v4");
+  assert.deepEqual(LEGACY_KEYS, ["liftpath-personal-v3", "liftpath-personal-v2", "liftpath-min-v1"]);
+});
+
+test("normalization dispatches explicit v3 input through migration", () => {
+  const state = normalizeState({ ...v3StateFixture, schemaVersion: 3 });
+  assert.equal(state.schemaVersion, 4);
+  assert.equal(state.migrationWarnings?.length, 0);
+});
+
+test("an already normalized v4 state is idempotent", () => {
+  const first = normalizeState(v3StateFixture);
+  const second = normalizeState(first);
+  assert.deepEqual(second, first);
 });
