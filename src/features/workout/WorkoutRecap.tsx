@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   ArrowRight,
+  Check,
   CheckCircle2,
   ChevronDown,
   Clock3,
@@ -32,40 +33,54 @@ export function WorkoutRecapModal({ app }: { app: ReturnType<typeof useGuidedApp
     );
   }
 
+  const primaryNextAction = recap.nextTime[0] ?? null;
+  const remainingNextActions = primaryNextAction ? recap.nextTime.slice(1) : recap.nextTime;
+
   return (
-    <Modal title="Coach recap" close={app.dismissRecap} wide>
-      <div className="guided-recap">
-        <header className="guided-recap-hero">
+    <Modal title="Buổi tập hoàn tất" close={app.dismissRecap} wide>
+      <div className="guided-recap focused-recap" data-ui="focused-coach">
+        <header className="guided-recap-hero focused-recap-hero">
+          <span className="recap-success-mark"><Check size={26} /></span>
           <span className="eyebrow">BUỔI TẬP ĐÃ LƯU</span>
-          <h2>Ba điều cần biết trước buổi tiếp theo</h2>
-          <p>LiftPath dùng đúng dữ liệu và readiness của buổi vừa hoàn thành. Kết luận này được lưu thành snapshot và không thay đổi theo lịch sử tương lai.</p>
+          <h2>Hoàn tất. Dữ liệu hôm nay đã sẵn sàng cho buổi tiếp theo.</h2>
+          <p>Coach recap dùng đúng snapshot readiness và các set vừa ghi; kết luận không thay đổi theo dữ liệu tương lai.</p>
         </header>
 
-        <RecapSection
-          icon={<CheckCircle2 size={20} />}
-          title="Hôm nay bạn làm tốt điều gì?"
-          items={recap.wentWell}
-          tone="success"
-          empty="Buổi tập đã được ghi lại đầy đủ để tiếp tục hiệu chỉnh."
-        />
-        <RecapSection
-          icon={<AlertTriangle size={20} />}
-          title="Có gì cần chú ý?"
-          items={recap.attention}
-          tone="warning"
-          empty="Không có tín hiệu bất thường cần ưu tiên từ dữ liệu buổi này."
-        />
-        <RecapSection
-          icon={<ArrowRight size={20} />}
-          title="Lần sau sẽ thay đổi gì?"
-          items={recap.nextTime}
-          tone="coach"
-          empty="Giữ kế hoạch hiện tại và thu thập thêm dữ liệu."
-        />
+        {primaryNextAction && (
+          <section className="recap-next-priority">
+            <div className="recap-section-heading"><ArrowRight size={19} /><h3>Ưu tiên buổi tiếp theo</h3></div>
+            <h2>{primaryNextAction.headline}</h2>
+            <p>{primaryNextAction.explanation}</p>
+          </section>
+        )}
+
+        <div className="recap-coaching-list">
+          <RecapSection
+            icon={<CheckCircle2 size={19} />}
+            title="Hôm nay bạn làm tốt điều gì?"
+            items={recap.wentWell}
+            tone="success"
+            empty="Buổi tập đã được ghi lại đầy đủ để tiếp tục hiệu chỉnh."
+          />
+          <RecapSection
+            icon={<AlertTriangle size={19} />}
+            title="Có gì cần chú ý?"
+            items={recap.attention}
+            tone="warning"
+            empty="Không có tín hiệu bất thường cần ưu tiên từ dữ liệu buổi này."
+          />
+          <RecapSection
+            icon={<ArrowRight size={19} />}
+            title="Lần sau sẽ thay đổi gì?"
+            items={remainingNextActions}
+            tone="coach"
+            empty={primaryNextAction ? "Ưu tiên chính đã được nêu ở trên." : "Giữ kế hoạch hiện tại và thu thập thêm dữ liệu."}
+          />
+        </div>
 
         {recap.prs.length > 0 && (
-          <section className="recap-prs">
-            <div className="recap-section-heading"><Trophy size={19} /><h3>Thành tích cá nhân</h3></div>
+          <section className="recap-prs focused-recap-prs">
+            <div className="recap-section-heading"><Trophy size={19} /><h3>Thành tích cá nhân mới</h3></div>
             <div className="recap-pr-list">
               {recap.prs.map((record, index) => (
                 <div key={`${record.exerciseId}-${record.type}-${index}`}>
@@ -77,7 +92,7 @@ export function WorkoutRecapModal({ app }: { app: ReturnType<typeof useGuidedApp
           </section>
         )}
 
-        <details className="recap-details">
+        <details className="recap-details focused-recap-details">
           <summary>Chi tiết buổi tập <ChevronDown size={17} /></summary>
           <div className="recap-metric-grid">
             <span><Clock3 size={17} /><small>Thời lượng</small><strong>{recap.durationMinutes} phút</strong></span>
@@ -106,7 +121,7 @@ function RecapSection({
   empty: string;
 }) {
   return (
-    <section className={`guided-recap-section tone-${tone}`}>
+    <section className={`guided-recap-section focused-recap-section tone-${tone}`}>
       <div className="recap-section-heading">{icon}<h3>{title}</h3></div>
       {items.length ? (
         <div className="guided-recap-list">
