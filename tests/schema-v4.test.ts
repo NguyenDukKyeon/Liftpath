@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { BUILT_IN_EXERCISES, BUILT_IN_PROGRAMS } from "../src/data.js";
+import { buildWorkoutEntries } from "../src/domain/planning.js";
+import { defaultProfile } from "../src/domain/storage.js";
 import { isCompletableSet, makeDraftEntry, setVolume } from "../src/domain/training.js";
-import type { ExercisePrescription, LoggedSet } from "../src/types.js";
+import type { EquipmentId, ExercisePrescription, LoggedSet, UserProfile } from "../src/types.js";
 
 const prescription: ExercisePrescription = {
   id: "FB-A:db-bench",
@@ -62,6 +64,52 @@ test("draft entries are created from prescription snapshots", () => {
   assert.equal(entry.target.rest, prescription.restSeconds);
   assert.equal(entry.loggedSets?.length, prescription.setScheme.length);
   assert.equal(entry.loggedSets?.[0].trackingMode, "weight-reps");
+});
+
+test("planner creates equipment-safe draft entries from prescriptions", () => {
+  const equipment: EquipmentId[] = ["dumbbell", "bodyweight", "bench"];
+  const profile: UserProfile = {
+    ...defaultProfile(),
+    onboardingComplete: true,
+    equipment,
+  };
+  const planned = buildWorkoutEntries({
+    programId: "full-body-3",
+    dayId: "FB-A",
+    customPrograms: [],
+    customExercises: [],
+    profile,
+    history: [],
+    targetRpe: 7,
+  });
+  assert.ok(planned);
+  const allowed = new Set(equipment);
+  assert.ok(planned.entries.length > 0);
+  assert.ok(planned.entries.every((entry) => {
+    const meta = BUILT_IN_EXERCISES[entry.exerciseId];
+    return meta.equipmentTags.some((tag) => allowed.has(tag)) || meta.equipmentTags.includes("bodyweight");
+  }));
+  assert.ok(planned.entries.every((entry) => Boolean(entry.target.prescriptionId)));
+});
+
+test("planner drops an unsafe prescription when no valid alternative exists", () => {
+  const profile: UserProfile = {
+    ...defaultProfile(),
+    onboardingComplete: true,
+    equipment: ["bodyweight"],
+    sessionMinutes: 90,
+  };
+  const planned = buildWorkoutEntries({
+    programId: "upper-lower-4",
+    dayId: "UL-L1",
+    customPrograms: [],
+    customExercises: [],
+    profile,
+    history: [],
+    targetRpe: 7,
+  });
+  assert.ok(planned);
+  assert.ok(planned.entries.every((entry) => BUILT_IN_EXERCISES[entry.exerciseId].equipmentTags.includes("bodyweight")));
 });
 
 test("every built-in workout has ordered unique prescriptions", () => {
