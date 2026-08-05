@@ -48,6 +48,25 @@ export type MovementPattern =
   | "carry"
   | "core";
 
+export type EffortLanguage = "simple-rir" | "rpe";
+export type MovementFamiliarity = "new" | "some" | "comfortable";
+export type RestrictionBodyArea =
+  | "shoulder"
+  | "elbow"
+  | "wrist"
+  | "back"
+  | "hip"
+  | "knee"
+  | "ankle"
+  | "other";
+
+export type StructuredRestriction = {
+  id: string;
+  bodyArea: RestrictionBodyArea;
+  affectedPatterns: MovementPattern[];
+  note: string;
+};
+
 export type EffortTarget =
   | { mode: "rir"; value: number }
   | { mode: "rpe"; value: number }
@@ -282,8 +301,16 @@ export type UserProfile = {
   availableDays: AvailableTrainingDays;
   sessionMinutes: 40 | 60 | 75 | 90;
   equipment: EquipmentId[];
+  preferredDays: number[];
   priorityMuscles: MuscleGroup[];
-  limitations: string;
+  restrictions: StructuredRestriction[];
+  profileNotes: string;
+  effortLanguage: EffortLanguage;
+  movementFamiliarity: MovementFamiliarity;
+  consistencyWeeks: number;
+  recentLoads: Partial<Record<ExerciseId, number>>;
+  /** @deprecated compatibility field removed by the Guided Coach onboarding flow */
+  limitations?: string;
 };
 
 export type Settings = {
