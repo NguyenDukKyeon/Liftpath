@@ -85,8 +85,8 @@ const prescriptionFromEntry = (
     targetEffort: entry.target.targetEffort ?? { mode: "rpe", value: entry.target.targetRpe },
     progression: entry.target.progression ?? defaultProgression(exercise),
     coachingCue: exercise.technique,
-    optional: order >= 5,
-    priority: order < 2 ? "primary" : order < 5 ? "secondary" : "accessory",
+    optional: order >= 4,
+    priority: order < 2 ? "primary" : order < 4 ? "secondary" : "accessory",
   };
 };
 
