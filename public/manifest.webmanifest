@@ -1,7 +1,7 @@
 {
-  "name": "LiftPath — Personal Progression Coach",
-  "short_name": "LiftPath",
-  "description": "Ghi từng hiệp, theo dõi tiến bộ, cá nhân hóa giáo án và backup dữ liệu tập luyện.",
+  "name": "LiftPath 4.0 — Guided Progression Coach",
+  "short_name": "LiftPath 4.0",
+  "description": "Guided Coach tiếng Việt cho onboarding, readiness, ghi từng hiệp, progression có giải thích và recap sau buổi tập.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
