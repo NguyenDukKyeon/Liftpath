@@ -4,14 +4,89 @@ import type {
   EquipmentId,
   Exercise,
   ExerciseId,
+  ExercisePrescription,
   ExerciseType,
+  MovementPattern,
   MuscleGroup,
   ProgramId,
+  ProgressionStrategy,
   Session,
   Settings,
+  TrackingMode,
   TrainingProgram,
   UserProfile,
+  WorkoutDay,
 } from "./types.js";
+
+type PrescriptionWorkoutDay = Omit<WorkoutDay, "exercises"> & {
+  exercises: ExercisePrescription[];
+};
+
+type PrescriptionTrainingProgram = Omit<TrainingProgram, "workouts"> & {
+  workouts: PrescriptionWorkoutDay[];
+};
+
+const durationExercises = new Set<ExerciseId>(["plank"]);
+const bodyweightExercises = new Set<ExerciseId>(["push_up", "pull_up"]);
+const assistedExercises = new Set<ExerciseId>(["assisted_pull_up"]);
+const unilateralExercises = new Set<ExerciseId>(["bulgarian", "walking_lunge", "one_row", "pallof"]);
+const linearLoadExercises = new Set<ExerciseId>(["back_squat", "barbell_bench", "barbell_rdl"]);
+
+const movementPatterns: Record<ExerciseId, MovementPattern> = {
+  back_squat: "squat",
+  goblet_squat: "squat",
+  leg_press: "squat",
+  hack_squat: "squat",
+  db_rdl: "hinge",
+  barbell_rdl: "hinge",
+  hip_thrust: "hinge",
+  glute_bridge: "hinge",
+  leg_curl: "isolation",
+  leg_extension: "isolation",
+  bulgarian: "lunge",
+  walking_lunge: "lunge",
+  calf_raise: "isolation",
+  barbell_bench: "horizontal-push",
+  db_bench: "horizontal-push",
+  incline_db: "horizontal-push",
+  machine_press: "horizontal-push",
+  push_up: "horizontal-push",
+  cable_fly: "isolation",
+  pull_up: "vertical-pull",
+  assisted_pull_up: "vertical-pull",
+  lat_pulldown: "vertical-pull",
+  chest_row: "horizontal-pull",
+  cable_row: "horizontal-pull",
+  one_row: "horizontal-pull",
+  db_ohp: "vertical-push",
+  machine_ohp: "vertical-push",
+  db_lateral: "isolation",
+  cable_lateral: "isolation",
+  face_pull: "horizontal-pull",
+  reverse_pec: "horizontal-pull",
+  triceps_pushdown: "isolation",
+  overhead_triceps: "isolation",
+  db_curl: "isolation",
+  hammer_curl: "isolation",
+  pallof: "core",
+  plank: "core",
+  cable_crunch: "core",
+};
+
+const trackingModeFor = (id: ExerciseId): TrackingMode => {
+  if (durationExercises.has(id)) return "duration";
+  if (assistedExercises.has(id)) return "assisted-reps";
+  if (bodyweightExercises.has(id)) return "bodyweight-reps";
+  return "weight-reps";
+};
+
+const contraindicationTagsFor = (pattern: MovementPattern): string[] => {
+  if (pattern === "vertical-push") return ["shoulder-overhead"];
+  if (pattern === "horizontal-push") return ["shoulder-push"];
+  if (pattern === "squat" || pattern === "lunge") return ["knee-flexion"];
+  if (pattern === "hinge") return ["hip-hinge", "lower-back"];
+  return [];
+};
 
 const exercise = (
   id: ExerciseId,
@@ -29,23 +104,30 @@ const exercise = (
   type: ExerciseType,
   suffix: Exercise["suffix"] = "reps",
   incrementKg = 2.5,
-): Exercise => ({
-  id,
-  name,
-  primary,
-  secondary,
-  equipment,
-  equipmentTags,
-  sets,
-  min,
-  max,
-  rest,
-  technique,
-  alternatives,
-  type,
-  suffix,
-  incrementKg,
-});
+): Exercise => {
+  const movementPattern = movementPatterns[id] ?? "isolation";
+  return {
+    id,
+    name,
+    primary,
+    secondary,
+    equipment,
+    equipmentTags,
+    sets,
+    min,
+    max,
+    rest,
+    technique,
+    alternatives,
+    type,
+    suffix,
+    incrementKg,
+    trackingMode: trackingModeFor(id),
+    movementPattern,
+    unilateral: unilateralExercises.has(id),
+    contraindicationTags: contraindicationTagsFor(movementPattern),
+  };
+};
 
 export const BUILT_IN_EXERCISES: Record<ExerciseId, Exercise> = {
   back_squat: exercise("back_squat", "Back Squat", "Đùi trước", ["Mông", "Đùi sau", "Core"], "Thanh đòn + rack", ["barbell", "rack"], 3, 5, 8, 150, "Siết thân, giữ bàn chân ổn định và để đầu gối đi cùng hướng mũi chân.", ["hack_squat", "leg_press", "goblet_squat"], "lower", "reps", 5),
@@ -67,8 +149,9 @@ export const BUILT_IN_EXERCISES: Record<ExerciseId, Exercise> = {
   machine_press: exercise("machine_press", "Machine Chest Press", "Ngực", ["Vai", "Tay sau"], "Máy", ["machine"], 3, 8, 12, 90, "Chỉnh ghế để tay cầm ngang giữa ngực và giữ bả vai ổn định.", ["db_bench", "push_up"], "upper", "reps", 2.5),
   push_up: exercise("push_up", "Push-Up", "Ngực", ["Vai", "Tay sau", "Core"], "Trọng lượng cơ thể", ["bodyweight"], 3, 8, 20, 75, "Giữ thân thành một đường và hạ ngực có kiểm soát.", ["machine_press", "db_bench"], "upper", "reps", 0),
   cable_fly: exercise("cable_fly", "Cable Fly", "Ngực", ["Vai"], "Máy cáp", ["cable"], 2, 12, 15, 60, "Giữ khuỷu hơi cong và khép tay bằng cơ ngực.", ["push_up", "machine_press"], "upper", "reps", 2.5),
-  pull_up: exercise("pull_up", "Pull-Up / Assisted Pull-Up", "Lưng", ["Tay trước", "Vai"], "Xà / máy hỗ trợ", ["bodyweight", "machine"], 3, 6, 10, 120, "Bắt đầu bằng hạ vai, kéo ngực hướng về xà và tránh đung đưa.", ["lat_pulldown"], "upper", "reps", 2.5),
-  lat_pulldown: exercise("lat_pulldown", "Neutral-Grip Lat Pulldown", "Lưng", ["Tay trước"], "Máy cáp", ["cable", "machine"], 3, 8, 12, 90, "Hạ vai trước khi kéo và đưa khuỷu về hông.", ["pull_up"], "upper", "reps", 2.5),
+  pull_up: exercise("pull_up", "Pull-Up", "Lưng", ["Tay trước", "Vai"], "Xà", ["bodyweight"], 3, 6, 10, 120, "Bắt đầu bằng hạ vai, kéo ngực hướng về xà và tránh đung đưa.", ["assisted_pull_up", "lat_pulldown"], "upper", "reps", 0),
+  assisted_pull_up: exercise("assisted_pull_up", "Assisted Pull-Up", "Lưng", ["Tay trước", "Vai"], "Máy hỗ trợ", ["machine"], 3, 6, 10, 120, "Giữ thân ổn định, kéo bằng lưng và giảm mức hỗ trợ từ từ theo thời gian.", ["pull_up", "lat_pulldown"], "upper", "reps", 2.5),
+  lat_pulldown: exercise("lat_pulldown", "Neutral-Grip Lat Pulldown", "Lưng", ["Tay trước"], "Máy cáp", ["cable", "machine"], 3, 8, 12, 90, "Hạ vai trước khi kéo và đưa khuỷu về hông.", ["assisted_pull_up", "pull_up"], "upper", "reps", 2.5),
   chest_row: exercise("chest_row", "Chest-Supported Row", "Lưng", ["Tay trước", "Vai"], "Máy / tạ đơn + ghế", ["machine", "dumbbell", "bench"], 3, 8, 12, 90, "Giữ ngực trên đệm và kéo khuỷu ra sau mà không nhún vai.", ["cable_row", "one_row"], "upper", "reps", 2.5),
   cable_row: exercise("cable_row", "Seated Cable Row", "Lưng", ["Tay trước"], "Máy cáp", ["cable", "machine"], 3, 8, 12, 90, "Giữ ngực cao, thân ổn định và kéo khuỷu ra sau.", ["chest_row", "one_row"], "upper", "reps", 2.5),
   one_row: exercise("one_row", "One-Arm Cable Row", "Lưng", ["Tay trước"], "Máy cáp", ["cable"], 2, 10, 12, 75, "Giữ thân ổn định và không xoay người để lấy đà.", ["cable_row", "chest_row"], "upper", "each side", 2.5),
@@ -87,7 +170,57 @@ export const BUILT_IN_EXERCISES: Record<ExerciseId, Exercise> = {
   cable_crunch: exercise("cable_crunch", "Cable Crunch", "Core", [], "Máy cáp", ["cable"], 2, 10, 15, 60, "Cuộn xương sườn về phía hông, tránh kéo dây chỉ bằng tay.", ["plank"], "core", "reps", 2.5),
 };
 
-export const BUILT_IN_PROGRAMS: Record<BuiltInProgramId, TrainingProgram> = {
+export const defaultProgression = (meta: Exercise): ProgressionStrategy => {
+  if (meta.trackingMode === "duration") return { type: "duration-progression", secondsStep: 5 };
+  if (meta.trackingMode === "bodyweight-reps" || meta.trackingMode === "assisted-reps") {
+    return { type: "rep-progression", repStep: 1 };
+  }
+  if (linearLoadExercises.has(meta.id)) return { type: "linear-load", incrementKg: meta.incrementKg };
+  if (meta.incrementKg > 0) return { type: "double-progression", incrementKg: meta.incrementKg };
+  return { type: "manual" };
+};
+
+export const makePrescription = (
+  workoutId: string,
+  exerciseId: ExerciseId,
+  order: number,
+  options: Partial<Omit<ExercisePrescription, "id" | "exerciseId" | "order">> = {},
+): ExercisePrescription => {
+  const meta = BUILT_IN_EXERCISES[exerciseId];
+  if (!meta) throw new Error(`Unknown built-in exercise: ${exerciseId}`);
+  const setScheme = Array.from({ length: meta.sets }, () => meta.trackingMode === "duration"
+    ? { kind: "working" as const, targetSeconds: { min: meta.min, max: meta.max } }
+    : { kind: "working" as const, targetReps: { min: meta.min, max: meta.max } });
+  return {
+    id: `${workoutId}:${exerciseId}:${order}`,
+    exerciseId,
+    order,
+    setScheme,
+    restSeconds: meta.rest,
+    targetEffort: { mode: "simple", repsInReserve: 2 },
+    progression: defaultProgression(meta),
+    coachingCue: meta.technique,
+    optional: order >= 5,
+    priority: order < 2 ? "primary" : order < 5 ? "secondary" : "accessory",
+    ...options,
+  };
+};
+
+const workout = (
+  id: string,
+  name: string,
+  shortName: string,
+  focus: string,
+  exerciseIds: ExerciseId[],
+): PrescriptionWorkoutDay => ({
+  id,
+  name,
+  shortName,
+  focus,
+  exercises: exerciseIds.map((exerciseId, order) => makePrescription(id, exerciseId, order)),
+});
+
+export const BUILT_IN_PROGRAMS: Record<BuiltInProgramId, PrescriptionTrainingProgram> = {
   "full-body-3": {
     id: "full-body-3",
     name: "Full Body 3 buổi",
@@ -98,11 +231,11 @@ export const BUILT_IN_PROGRAMS: Record<BuiltInProgramId, TrainingProgram> = {
     sessionMinutes: "55–75 phút",
     scheduleLabel: "Thứ 2 · Thứ 4 · Thứ 6",
     recommendedDays: [1, 3, 5],
-    version: 2,
+    version: 3,
     workouts: [
-      { id: "FB-A", name: "Full Body A", shortName: "Toàn thân A", focus: "Đùi trước · Ngực · Lưng", exercises: ["leg_press", "lat_pulldown", "db_bench", "cable_row", "leg_curl", "db_lateral", "pallof"] },
-      { id: "FB-B", name: "Full Body B", shortName: "Toàn thân B", focus: "Chuỗi sau · Lưng · Ngực trên", exercises: ["db_rdl", "chest_row", "incline_db", "hack_squat", "pull_up", "face_pull", "calf_raise"] },
-      { id: "FB-C", name: "Full Body C", shortName: "Toàn thân C", focus: "Mông · Vai · Chân đơn", exercises: ["hip_thrust", "lat_pulldown", "db_ohp", "bulgarian", "machine_press", "one_row", "cable_lateral", "plank"] },
+      workout("FB-A", "Full Body A", "Toàn thân A", "Đùi trước · Ngực · Lưng", ["leg_press", "lat_pulldown", "db_bench", "cable_row", "leg_curl", "db_lateral", "pallof"]),
+      workout("FB-B", "Full Body B", "Toàn thân B", "Chuỗi sau · Lưng · Ngực trên", ["db_rdl", "chest_row", "incline_db", "hack_squat", "assisted_pull_up", "face_pull", "calf_raise"]),
+      workout("FB-C", "Full Body C", "Toàn thân C", "Mông · Vai · Chân đơn", ["hip_thrust", "lat_pulldown", "db_ohp", "bulgarian", "machine_press", "one_row", "cable_lateral", "plank"]),
     ],
   },
   "upper-lower-4": {
@@ -115,12 +248,12 @@ export const BUILT_IN_PROGRAMS: Record<BuiltInProgramId, TrainingProgram> = {
     sessionMinutes: "50–70 phút",
     scheduleLabel: "Thứ 2 · Thứ 3 · Thứ 5 · Thứ 6",
     recommendedDays: [1, 2, 4, 5],
-    version: 2,
+    version: 3,
     workouts: [
-      { id: "UL-U1", name: "Upper 1 · Nền tảng", shortName: "Thân trên 1", focus: "Ngực · Lưng · Vai", exercises: ["barbell_bench", "lat_pulldown", "cable_row", "db_ohp", "db_lateral", "triceps_pushdown", "db_curl"] },
-      { id: "UL-L1", name: "Lower 1 · Squat", shortName: "Thân dưới 1", focus: "Đùi trước · Đùi sau · Core", exercises: ["back_squat", "db_rdl", "leg_press", "leg_curl", "calf_raise", "pallof"] },
-      { id: "UL-U2", name: "Upper 2 · Tăng cơ", shortName: "Thân trên 2", focus: "Ngực trên · Lưng · Vai sau", exercises: ["incline_db", "pull_up", "chest_row", "machine_press", "cable_lateral", "face_pull", "overhead_triceps", "hammer_curl"] },
-      { id: "UL-L2", name: "Lower 2 · Mông", shortName: "Thân dưới 2", focus: "Mông · Chân đơn · Bắp chân", exercises: ["hack_squat", "hip_thrust", "bulgarian", "leg_extension", "leg_curl", "calf_raise", "plank"] },
+      workout("UL-U1", "Upper 1 · Nền tảng", "Thân trên 1", "Ngực · Lưng · Vai", ["barbell_bench", "lat_pulldown", "cable_row", "db_ohp", "db_lateral", "triceps_pushdown", "db_curl"]),
+      workout("UL-L1", "Lower 1 · Squat", "Thân dưới 1", "Đùi trước · Đùi sau · Core", ["back_squat", "db_rdl", "leg_press", "leg_curl", "calf_raise", "pallof"]),
+      workout("UL-U2", "Upper 2 · Tăng cơ", "Thân trên 2", "Ngực trên · Lưng · Vai sau", ["incline_db", "pull_up", "chest_row", "machine_press", "cable_lateral", "face_pull", "overhead_triceps", "hammer_curl"]),
+      workout("UL-L2", "Lower 2 · Mông", "Thân dưới 2", "Mông · Chân đơn · Bắp chân", ["hack_squat", "hip_thrust", "bulgarian", "leg_extension", "leg_curl", "calf_raise", "plank"]),
     ],
   },
   "ppl-6": {
@@ -133,17 +266,29 @@ export const BUILT_IN_PROGRAMS: Record<BuiltInProgramId, TrainingProgram> = {
     sessionMinutes: "40–60 phút",
     scheduleLabel: "Thứ 2 đến Thứ 7 · nghỉ Chủ nhật",
     recommendedDays: [1, 2, 3, 4, 5, 6],
-    version: 2,
+    version: 3,
     workouts: [
-      { id: "PPL-PA", name: "Push A · Ngực", shortName: "Push A", focus: "Ngực · Vai · Tay sau", exercises: ["barbell_bench", "incline_db", "db_ohp", "db_lateral", "triceps_pushdown"] },
-      { id: "PPL-UA", name: "Pull A · Xô", shortName: "Pull A", focus: "Lưng · Vai sau · Tay trước", exercises: ["pull_up", "chest_row", "lat_pulldown", "face_pull", "db_curl"] },
-      { id: "PPL-LA", name: "Legs A · Squat", shortName: "Legs A", focus: "Đùi trước · Đùi sau · Core", exercises: ["back_squat", "db_rdl", "leg_press", "leg_curl", "calf_raise", "pallof"] },
-      { id: "PPL-PB", name: "Push B · Vai", shortName: "Push B", focus: "Vai · Ngực · Tay sau", exercises: ["machine_ohp", "machine_press", "cable_fly", "cable_lateral", "overhead_triceps"] },
-      { id: "PPL-UB", name: "Pull B · Lưng dày", shortName: "Pull B", focus: "Lưng · Vai sau · Tay trước", exercises: ["lat_pulldown", "cable_row", "one_row", "reverse_pec", "hammer_curl"] },
-      { id: "PPL-LB", name: "Legs B · Mông", shortName: "Legs B", focus: "Mông · Chân đơn · Đùi trước", exercises: ["hack_squat", "hip_thrust", "bulgarian", "leg_extension", "leg_curl", "calf_raise", "plank"] },
+      workout("PPL-PA", "Push A · Ngực", "Push A", "Ngực · Vai · Tay sau", ["barbell_bench", "incline_db", "db_ohp", "db_lateral", "triceps_pushdown"]),
+      workout("PPL-UA", "Pull A · Xô", "Pull A", "Lưng · Vai sau · Tay trước", ["pull_up", "chest_row", "lat_pulldown", "face_pull", "db_curl"]),
+      workout("PPL-LA", "Legs A · Squat", "Legs A", "Đùi trước · Đùi sau · Core", ["back_squat", "db_rdl", "leg_press", "leg_curl", "calf_raise", "pallof"]),
+      workout("PPL-PB", "Push B · Vai", "Push B", "Vai · Ngực · Tay sau", ["machine_ohp", "machine_press", "cable_fly", "cable_lateral", "overhead_triceps"]),
+      workout("PPL-UB", "Pull B · Lưng dày", "Pull B", "Lưng · Vai sau · Tay trước", ["lat_pulldown", "cable_row", "one_row", "reverse_pec", "hammer_curl"]),
+      workout("PPL-LB", "Legs B · Mông", "Legs B", "Mông · Chân đơn · Đùi trước", ["hack_squat", "hip_thrust", "bulgarian", "leg_extension", "leg_curl", "calf_raise", "plank"]),
     ],
   },
 };
+
+const legacyProgramView = (program: PrescriptionTrainingProgram): TrainingProgram => ({
+  ...program,
+  workouts: program.workouts.map((day) => ({
+    ...day,
+    exercises: day.exercises.map((item) => item.exerciseId),
+  })),
+});
+
+const BUILT_IN_PROGRAM_VIEWS = Object.fromEntries(
+  Object.entries(BUILT_IN_PROGRAMS).map(([programId, program]) => [programId, legacyProgramView(program)]),
+) as Record<BuiltInProgramId, TrainingProgram>;
 
 export const BUILT_IN_PROGRAM_ORDER: BuiltInProgramId[] = ["full-body-3", "upper-lower-4", "ppl-6"];
 export const DEFAULT_PROGRAM_ID: BuiltInProgramId = "full-body-3";
@@ -181,18 +326,18 @@ export const allExercises = (customExercises: Exercise[]) => ({
 });
 
 export const allPrograms = (customPrograms: TrainingProgram[]) => ({
-  ...BUILT_IN_PROGRAMS,
+  ...BUILT_IN_PROGRAM_VIEWS,
   ...Object.fromEntries(customPrograms.map((item) => [item.id, item])),
 }) as Record<ProgramId, TrainingProgram>;
 
 export const getProgram = (programId: ProgramId | string | undefined, customPrograms: TrainingProgram[] = []) =>
-  allPrograms(customPrograms)[programId as ProgramId] ?? BUILT_IN_PROGRAMS[DEFAULT_PROGRAM_ID];
+  allPrograms(customPrograms)[programId as ProgramId] ?? BUILT_IN_PROGRAM_VIEWS[DEFAULT_PROGRAM_ID];
 
 export const getWorkout = (
   programId: ProgramId | string | undefined,
   dayId: DayId,
   customPrograms: TrainingProgram[] = [],
-) => getProgram(programId, customPrograms).workouts.find((workout) => workout.id === dayId);
+) => getProgram(programId, customPrograms).workouts.find((item) => item.id === dayId);
 
 export const phaseForWeek = (week: number) => PHASES[(Math.max(1, Math.floor(week)) - 1) % PHASES.length];
 
@@ -217,7 +362,7 @@ export const nextWorkoutDay = (
     (a, b) => new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime(),
   )[0];
   if (!latest) return workouts[0]?.id ?? "";
-  const index = workouts.findIndex((workout) => workout.id === latest.dayId);
+  const index = workouts.findIndex((item) => item.id === latest.dayId);
   return workouts[(index >= 0 ? index + 1 : 0) % Math.max(1, workouts.length)]?.id ?? workouts[0]?.id ?? "";
 };
 
