@@ -1,6 +1,6 @@
 # LiftPath 4.0 Guided Coach — Plan 02: Plan Builder, Onboarding and Readiness
 
-> **Execution status:** Checkpoint B implemented and verified on `agent/liftpath-4-guided-coach`. The latest docs-only alignment commit is `32732ea5124abd5f35bd94823ad7bbdb6f8a4e4c`; GitHub Actions run `31011476024` passed type check, 40 tests, and production build. PR #4 remains draft and unmerged.
+> **Execution status:** Checkpoint B implemented and verified. Branch head `7afc90e0eb82656c37da521752cd2e3dbaa93656`; GitHub Actions run `31011584213` passed type check, 40 tests, and production build. PR #4 remains draft and unmerged.
 
 ## Goal
 
@@ -23,63 +23,24 @@ Build the explainable plan recommendation layer, four-step onboarding, safe exer
 
 ## Implemented modules
 
-### Coach contracts and explanations
-
 - `src/features/coach/contracts.ts`
 - `src/features/coach/explanations.ts`
-- structured fields added to `UserProfile`
-- compatibility normalization in `src/domain/storage.ts`
-
-### Equipment-safe plan builder
-
 - `src/features/coach/substitution.ts`
 - `src/features/coach/plan-builder.ts`
-- explicit alternatives → same movement pattern → same primary muscle
-- equipment and restriction filters run before scoring
-- unsafe primary prescriptions produce invalid-plan evidence
-
-### Readiness engine
-
 - `src/features/coach/readiness.ts`
-- severe pain block
-- accessory-first time reduction
-- secondary/accessory set reduction under poor recovery
-- effort reduction with immutable prescription cloning
-
-### Four-step onboarding
-
 - `src/features/onboarding/onboarding-state.ts`
 - `src/features/onboarding/OnboardingFlow.tsx`
 - `src/features/onboarding/onboarding.css`
-- compatibility export in `src/components/Onboarding.tsx`
-- exact recommendation persistence in `src/guided-state.ts`
-
-### Pre-workout confirmation
-
 - `src/features/workout/preparation.ts`
 - `src/features/workout/ReadinessCheck.tsx`
 - `src/features/workout/readiness.css`
-- transient `PreparedWorkout`
-- readiness-gated `GuidedDraft`
-- storage preservation for readiness snapshots
+- `src/guided-state.ts`
 
 ## Verification evidence
 
-Latest verified commit:
-
 ```text
-32732ea5124abd5f35bd94823ad7bbdb6f8a4e4c
-```
-
-GitHub Actions run:
-
-```text
-31011476024
-```
-
-Fresh result:
-
-```text
+Branch head: 7afc90e0eb82656c37da521752cd2e3dbaa93656
+Workflow run: 31011584213
 Type check: success
 Tests: 40 passed, 0 failed, 0 skipped
 Production build: success
@@ -88,7 +49,7 @@ Deploy job: skipped
 
 The workflow still reports one pre-existing moderate npm audit advisory. Dependencies were not changed as part of Checkpoint B.
 
-## Deferred to later checkpoints
+## Deferred
 
-- Workout-session coaching and progression logic: Checkpoint C.
-- Component tests, E2E tests, accessibility audit, browser/mobile manual review, and release gates: Checkpoint D.
+- Checkpoint C: workout-session coaching, progression, and recap.
+- Checkpoint D: component tests, E2E, accessibility audit, browser/mobile manual review, and release gates.
