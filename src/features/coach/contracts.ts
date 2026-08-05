@@ -40,7 +40,27 @@ export type CoachReasonCode =
   | "pain-safe-substitution"
   | "no-adjustment-needed"
   | "insufficient-evidence"
-  | "safe-default-plan";
+  | "safe-default-plan"
+  | "pain-blocks-progression"
+  | "progression-insufficient-history"
+  | "progression-top-range-complete"
+  | "progression-reps-still-building"
+  | "progression-linear-success"
+  | "progression-poor-session-observe"
+  | "progression-repeated-below-range"
+  | "progression-interruption-guard"
+  | "progression-duration-complete"
+  | "progression-manual-strategy"
+  | "progression-hold-current"
+  | "recap-plan-adherence"
+  | "recap-progression-ready"
+  | "recap-personal-record"
+  | "recap-pain-attention"
+  | "recap-primary-work-incomplete"
+  | "recap-recovery-attention"
+  | "recap-next-session-plan"
+  | "preference-saved"
+  | "preference-cleared";
 
 export type CoachEvidence = {
   key: string;
