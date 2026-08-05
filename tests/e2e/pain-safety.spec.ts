@@ -14,5 +14,5 @@ test("sharp knee pain blocks the unsafe session and avoids diagnosis claims", as
   await expect(page.getByRole("heading", { name: /không nên bắt đầu buổi này/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /buổi tập đang bị chặn/i })).toBeDisabled();
   await expect(page.getByText(/LiftPath không chẩn đoán chấn thương/i)).toBeVisible();
-  await expect(page.getByText(/đau nhói|dừng chuyển động gây đau/i)).toBeVisible();
+  await expect(page.getByText(/^Dừng chuyển động gây đau\./i)).toBeVisible();
 });
