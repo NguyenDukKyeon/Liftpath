@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useGuidedAppState } from "./guided-state.js";
 import { ReadinessCheck } from "./features/workout/ReadinessCheck.js";
+import { WorkoutRecapModal } from "./features/workout/WorkoutRecap.js";
 import { useRestTimer, useTrainingReminder } from "./timers.js";
 import type { ProgramId } from "./types.js";
 import { Onboarding } from "./components/Onboarding.js";
@@ -19,7 +20,6 @@ import {
   InsightsScreen,
   ProgramSwitchDialog,
   ProgramsScreen,
-  RecapModal,
   SettingsScreen,
   TodayScreen,
 } from "./components/Screens.js";
@@ -97,7 +97,7 @@ export default function App() {
       </div>
 
       {switchTarget && <ProgramSwitchDialog programId={switchTarget} app={app} close={() => setSwitchTarget(null)} />}
-      <RecapModal app={app} />
+      <WorkoutRecapModal app={app} />
     </div>
   );
 }
