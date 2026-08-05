@@ -24,6 +24,27 @@ export const returningUserState = (): AppState => {
   return state;
 };
 
+const withCustomProgram = (
+  state: AppState,
+  program: TrainingProgram,
+): AppState => ({
+  ...state,
+  settings: {
+    ...state.settings,
+    programId: program.id,
+    weeklyGoal: program.daysPerWeek,
+    trainingDays: [...program.recommendedDays],
+  },
+  customPrograms: [
+    ...state.customPrograms.filter((item) => item.id !== program.id),
+    program,
+  ],
+  programProgress: {
+    ...state.programProgress,
+    [program.id]: { startedAt: todayISO(), currentWeek: 1, autoDeload: true },
+  },
+});
+
 const benchEntry = (done = true): ExerciseEntry => {
   const exercise = BUILT_IN_EXERCISES.db_bench;
   const sets = [1, 2, 3].map((index) => ({
@@ -115,20 +136,42 @@ export const progressionUserState = (): AppState => {
     weeklyGoalAtCompletion: 1,
   };
   return {
-    ...state,
-    settings: {
-      ...state.settings,
-      programId,
-      weeklyGoal: 1,
-      trainingDays: [1],
-    },
-    customPrograms: [program],
-    programProgress: {
-      ...state.programProgress,
-      [programId]: { startedAt: todayISO(), currentWeek: 1, autoDeload: true },
-    },
+    ...withCustomProgram(state, program),
     history: [prior],
   };
+};
+
+export const shortSessionUserState = (): AppState => {
+  const state = returningUserState();
+  const programId = "custom:short-session-e2e" as ProgramId;
+  const program: TrainingProgram = {
+    id: programId,
+    name: "Short Session Test Plan",
+    shortName: "Short session",
+    daysPerWeek: 1,
+    level: "Kiểm thử",
+    description: "A deterministic existing-user plan with protected primary work and removable accessories.",
+    sessionMinutes: "45 phút",
+    scheduleLabel: "1 buổi",
+    recommendedDays: [1],
+    workouts: [{
+      id: "short-session-day",
+      name: "Short Session Day",
+      shortName: "S1",
+      focus: "Toàn thân",
+      exercises: [
+        "db_bench",
+        "chest_row",
+        "goblet_squat",
+        "db_ohp",
+        "db_rdl",
+        "lat_pulldown",
+      ],
+    }],
+    version: 1,
+    custom: true,
+  };
+  return withCustomProgram(state, program);
 };
 
 export const activeWorkoutState = (): AppState => {
