@@ -107,7 +107,7 @@ export function ReadinessCheck({
           </ReadinessSection>
 
           <ReadinessSection number="4" title="Bạn có bao nhiêu phút?">
-            <div className="readiness-time-row"><Clock3 size={19} /><input type="range" min={25} max={90} step={5} value={availableMinutes} onChange={(event) => setAvailableMinutes(Number(event.target.value))} /><strong>{availableMinutes} phút</strong></div>
+            <div className="readiness-time-row"><Clock3 size={19} /><input aria-label="Thời lượng có thể tập hôm nay" aria-valuetext={`${availableMinutes} phút`} type="range" min={25} max={90} step={5} value={availableMinutes} onChange={(event) => setAvailableMinutes(Number(event.target.value))} /><strong>{availableMinutes} phút</strong></div>
           </ReadinessSection>
 
           <section className={`readiness-preview ${preview.value.allowStart ? "" : "blocked"}`}>
