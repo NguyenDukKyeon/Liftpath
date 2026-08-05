@@ -21,6 +21,23 @@ export const CURRENT_SCHEMA_VERSION = 4 as const;
 const nowISO = () => new Date().toISOString();
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+const legacyDayMap: Record<string, string> = { A: "FB-A", B: "FB-B", C: "FB-C" };
+const normalizedDayId = (value: unknown) => typeof value === "string" ? legacyDayMap[value] ?? value : value;
+
+const normalizeLegacyRecordDay = (value: unknown): unknown => {
+  if (!isObject(value)) return value;
+  const dayId = normalizedDayId(value.dayId);
+  const snapshot = isObject(value.programSnapshot)
+    ? { ...value.programSnapshot, dayId: normalizedDayId(value.programSnapshot.dayId) }
+    : value.programSnapshot;
+  return { ...value, dayId, programSnapshot: snapshot };
+};
+
+const prepareMigrationInput = (value: Record<string, unknown>) => ({
+  ...value,
+  history: Array.isArray(value.history) ? value.history.map(normalizeLegacyRecordDay) : value.history,
+  draft: value.draft == null ? value.draft : normalizeLegacyRecordDay(value.draft),
+});
 
 export const defaultProfile = (): UserProfile => ({
   onboardingComplete: false,
@@ -91,7 +108,7 @@ const runtimeProgramView = (program: V4TrainingProgram): TrainingProgram => ({
  */
 export const normalizeState = (value: unknown): AppState => {
   if (!isObject(value)) return defaultState();
-  const { state, warnings } = migrateV3ToV4(value);
+  const { state, warnings } = migrateV3ToV4(prepareMigrationInput(value));
   return {
     ...state,
     schemaVersion: CURRENT_SCHEMA_VERSION,
