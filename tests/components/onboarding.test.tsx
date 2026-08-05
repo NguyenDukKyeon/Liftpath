@@ -5,7 +5,7 @@ import { defaultProfile } from "../../src/domain/storage.js";
 import { OnboardingFlow } from "../../src/features/onboarding/OnboardingFlow.js";
 
 describe("OnboardingFlow", () => {
-  it("submits the exact equipment-safe plan shown in preview", async () => {
+  it("keeps optional calibration collapsed and submits the exact plan shown in preview", async () => {
     const user = userEvent.setup();
     const complete = vi.fn();
     render(<OnboardingFlow initial={defaultProfile()} onComplete={complete} />);
@@ -15,10 +15,21 @@ describe("OnboardingFlow", () => {
     expect(screen.getByRole("heading", { name: /lịch nào bạn thực sự duy trì được/i })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /tiếp tục/i }));
     expect(screen.getByRole("heading", { name: /hiệu chỉnh mức hướng dẫn/i })).toBeInTheDocument();
+
+    const advanced = screen.getByText(/tùy chỉnh nâng cao/i);
+    expect(advanced).toBeInTheDocument();
+    expect(screen.getByText(/hạn chế chuyển động/i)).not.toBeVisible();
+    expect(screen.getByText(/mức tạ gần đây/i)).not.toBeVisible();
+
+    await user.click(advanced);
+    expect(screen.getByText(/hạn chế chuyển động/i)).toBeVisible();
+    expect(screen.getByText(/mức tạ gần đây/i)).toBeVisible();
+
     await user.click(screen.getByRole("button", { name: /tiếp tục/i }));
 
     expect(screen.getByRole("heading", { name: /lộ trình được đề xuất/i })).toBeInTheDocument();
     expect(screen.getByText(/phương án được chọn/i)).toBeInTheDocument();
+    expect(screen.getByTestId("athlete-plan-preview")).toHaveAttribute("alt", "");
     const submit = screen.getByRole("button", { name: /dùng lộ trình này/i });
     expect(submit).toBeEnabled();
     await user.click(submit);
