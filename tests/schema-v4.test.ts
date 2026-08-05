@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { BUILT_IN_EXERCISES, BUILT_IN_PROGRAMS } from "../src/data.js";
 import type { ExercisePrescription, LoggedSet } from "../src/types.js";
 
 const prescription: ExercisePrescription = {
@@ -27,4 +28,27 @@ const logged: LoggedSet = {
 test("v4 prescription and logged-set contracts are constructible", () => {
   assert.equal(prescription.progression.type, "double-progression");
   assert.equal(logged.trackingMode, "weight-reps");
+});
+
+test("every built-in workout has ordered unique prescriptions", () => {
+  for (const program of Object.values(BUILT_IN_PROGRAMS)) {
+    for (const workout of program.workouts) {
+      assert.deepEqual(
+        workout.exercises.map((item) => item.order),
+        workout.exercises.map((_, index) => index),
+      );
+      assert.equal(new Set(workout.exercises.map((item) => item.id)).size, workout.exercises.length);
+      assert.ok(workout.exercises.every((item) => item.setScheme.length > 0));
+    }
+  }
+});
+
+test("exercise alternatives reference known exercises", () => {
+  for (const exercise of Object.values(BUILT_IN_EXERCISES)) {
+    assert.ok(exercise.trackingMode, `${exercise.id} has no tracking mode`);
+    assert.ok(exercise.movementPattern, `${exercise.id} has no movement pattern`);
+    for (const alternativeId of exercise.alternatives) {
+      assert.ok(BUILT_IN_EXERCISES[alternativeId], `${exercise.id} references ${alternativeId}`);
+    }
+  }
 });
