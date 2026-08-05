@@ -27,6 +27,7 @@ test("onboarding selections and notes survive backward navigation", async ({ pag
   await page.getByRole("button", { name: /T3.*Thứ Ba/i }).click();
   await page.getByRole("button", { name: /Thanh đòn/i }).click();
   await page.getByRole("button", { name: /tiếp tục/i }).click();
+  await page.getByText(/tùy chỉnh nâng cao/i).click();
 
   const notes = page.getByPlaceholder(/Ghi chú tùy chọn/i);
   await notes.fill("D2: giữ ghi chú khi quay lại bước trước");
@@ -38,6 +39,7 @@ test("onboarding selections and notes survive backward navigation", async ({ pag
   await expect(page.getByRole("button", { name: /Thanh đòn/i })).toHaveClass(/selected/);
 
   await page.getByRole("button", { name: /tiếp tục/i }).click();
+  await page.getByText(/tùy chỉnh nâng cao/i).click();
   await expect(notes).toHaveValue("D2: giữ ghi chú khi quay lại bước trước");
   await expectNoHorizontalOverflow(page);
   await page.locator(".guided-step").scrollIntoViewIfNeeded();
@@ -65,7 +67,7 @@ test("permission denial and Wake Lock failure never block set logging", async ({
   await seedState(page, activeWorkoutState());
   await page.goto("/");
 
-  await expect(page.getByText(/Wake Lock chưa hoạt động/i)).toBeVisible();
+  await expect(page.getByText(/Wake Lock tắt/i)).toBeVisible();
   const load = page.getByLabel(/^Kg hiệp 1$/).first();
   const reps = page.getByLabel(/^Reps hiệp 1$/).first();
   await load.fill("10");
@@ -98,7 +100,7 @@ test("Wake Lock success is visible and numeric fields expose mobile input modes"
   await seedState(page, activeWorkoutState());
   await page.goto("/");
 
-  await expect(page.getByText(/Màn hình đang giữ sáng/i)).toBeVisible();
+  await expect(page.getByText(/^Giữ sáng$/i)).toBeVisible();
   const load = page.getByLabel(/^Kg hiệp 1$/).first();
   const reps = page.getByLabel(/^Reps hiệp 1$/).first();
   await expect(load).toHaveAttribute("inputmode", "decimal");
