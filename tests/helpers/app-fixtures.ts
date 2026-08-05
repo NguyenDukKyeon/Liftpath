@@ -2,6 +2,7 @@ import { BUILT_IN_EXERCISES, todayISO } from "../../src/data.js";
 import { defaultState } from "../../src/domain/storage.js";
 import type {
   AppState,
+  Exercise,
   ExerciseEntry,
   ProgramId,
   Session,
@@ -144,14 +145,34 @@ export const progressionUserState = (): AppState => {
 export const shortSessionUserState = (): AppState => {
   const state = returningUserState();
   const programId = "custom:short-session-e2e" as ProgramId;
+  const longAccessory: Exercise = {
+    id: "custom:long-accessory",
+    name: "Long Accessory Curl",
+    primary: "Tay trước",
+    secondary: [],
+    equipment: "Tạ đơn",
+    equipmentTags: ["dumbbell"],
+    sets: 5,
+    min: 10,
+    max: 15,
+    rest: 180,
+    technique: "Giữ khuỷu tay ổn định và kiểm soát nhịp hạ tạ.",
+    alternatives: [],
+    type: "arms",
+    suffix: "reps",
+    incrementKg: 2,
+    trackingMode: "weight-reps",
+    movementPattern: "isolation",
+    custom: true,
+  };
   const program: TrainingProgram = {
     id: programId,
     name: "Short Session Test Plan",
     shortName: "Short session",
     daysPerWeek: 1,
     level: "Kiểm thử",
-    description: "A deterministic existing-user plan with protected primary work and removable accessories.",
-    sessionMinutes: "45 phút",
+    description: "A deterministic existing-user plan with protected primary work and one removable long accessory.",
+    sessionMinutes: "50 phút",
     scheduleLabel: "1 buổi",
     recommendedDays: [1],
     workouts: [{
@@ -164,14 +185,16 @@ export const shortSessionUserState = (): AppState => {
         "chest_row",
         "goblet_squat",
         "db_ohp",
-        "db_rdl",
-        "lat_pulldown",
+        longAccessory.id,
       ],
     }],
     version: 1,
     custom: true,
   };
-  return withCustomProgram(state, program);
+  return withCustomProgram({
+    ...state,
+    customExercises: [...state.customExercises, longAccessory],
+  }, program);
 };
 
 export const activeWorkoutState = (): AppState => {
