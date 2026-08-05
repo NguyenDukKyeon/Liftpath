@@ -4,6 +4,7 @@ const externalBaseUrl = process.env.D2_BASE_URL;
 
 export default defineConfig({
   testDir: "tests/e2e-d2",
+  outputDir: "test-results-d2",
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
