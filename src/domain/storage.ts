@@ -137,11 +137,17 @@ const runtimeProgramView = (program: V4TrainingProgram): TrainingProgram => ({
  */
 export const normalizeState = (value: unknown): AppState => {
   if (!isObject(value)) return defaultState();
+  const sourceDraft = isObject(value.draft) ? value.draft : null;
+  const readiness = sourceDraft && isObject(sourceDraft.readiness) ? sourceDraft.readiness : null;
   const { state, warnings } = migrateV3ToV4(prepareMigrationInput(value));
+  const draft = state.draft && readiness
+    ? { ...state.draft, readiness }
+    : state.draft;
   return {
     ...state,
     schemaVersion: CURRENT_SCHEMA_VERSION,
     profile: normalizeCoachProfile(state.profile),
+    draft,
     customPrograms: state.customPrograms.map(runtimeProgramView),
     migrationWarnings: warnings,
   };
