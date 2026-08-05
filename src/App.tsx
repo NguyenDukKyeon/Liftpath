@@ -9,6 +9,7 @@ import {
   Sun,
 } from "lucide-react";
 import { useGuidedAppState } from "./guided-state.js";
+import { ReadinessCheck } from "./features/workout/ReadinessCheck.js";
 import { useRestTimer, useTrainingReminder } from "./timers.js";
 import type { ProgramId } from "./types.js";
 import { Onboarding } from "./components/Onboarding.js";
@@ -52,6 +53,9 @@ export default function App() {
 
   if (!app.state.profile.onboardingComplete) {
     return <Onboarding initial={app.state.profile} onComplete={app.completeOnboarding} />;
+  }
+  if (app.preparedWorkout) {
+    return <ReadinessCheck prepared={app.preparedWorkout} confirm={app.confirmReadiness} cancel={app.cancelPreparedWorkout} />;
   }
   if (app.state.draft) return <WorkoutScreen app={app} timer={timer} />;
 
