@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { normalizeState } from "../src/domain/storage.js";
 import { explainReason } from "../src/features/coach/explanations.js";
 import type {
   CoachDecision,
@@ -74,4 +75,23 @@ test("every public reason code resolves to non-empty Vietnamese copy", () => {
   for (const code of codes) {
     assert.ok(explainReason(code).trim().length > 20, code);
   }
+});
+
+test("legacy profile notes are preserved in structured coach fields", () => {
+  const state = normalizeState({
+    schemaVersion: 3,
+    profile: {
+      onboardingComplete: true,
+      goal: "hypertrophy",
+      experience: "beginner",
+      availableDays: 3,
+      sessionMinutes: 60,
+      equipment: ["bodyweight", "dumbbell"],
+      priorityMuscles: [],
+      limitations: "Đau vai khi đẩy qua đầu",
+    },
+  });
+  assert.equal(state.profile.profileNotes, "Đau vai khi đẩy qua đầu");
+  assert.deepEqual(state.profile.restrictions, []);
+  assert.equal(state.profile.effortLanguage, "simple-rir");
 });
