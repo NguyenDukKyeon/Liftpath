@@ -158,7 +158,7 @@ export type WorkoutDay = {
   name: string;
   shortName: string;
   focus: string;
-  exercises: ExerciseId[] | ExercisePrescription[];
+  exercises: ExerciseId[];
 };
 
 export type TrainingProgram = {
