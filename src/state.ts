@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   allExercises,
-  availableExerciseIds,
+  defaultProgression,
   getProgram,
-  getWorkout,
   phaseForWeek,
   programWeek,
   recommendProgramForProfile,
   todayISO,
 } from "./data.js";
+import { buildWorkoutEntries } from "./domain/planning.js";
 import {
   defaultState,
   loadState,
@@ -16,8 +16,8 @@ import {
   STORAGE_KEY,
 } from "./domain/storage.js";
 import {
-  autofillSetsFromHistory,
   isCompletableSet,
+  makeDraftEntry,
   makeRecap,
   uid,
   weeklyReview,
@@ -28,6 +28,8 @@ import type {
   DayId,
   Exercise,
   ExerciseEntry,
+  ExercisePrescription,
+  LoggedSet,
   ProgramId,
   ProgramSwitchOptions,
   Session,
@@ -36,6 +38,7 @@ import type {
   SetKind,
   Settings,
   SyncConfig,
+  TrackingMode,
   TrainingProgram,
   UserProfile,
 } from "./types.js";
@@ -50,10 +53,49 @@ const snapshotExercise = (exercise: Exercise) => ({
   equipment: exercise.equipment,
   suffix: exercise.suffix,
   incrementKg: exercise.incrementKg,
+  trackingMode: exercise.trackingMode,
+  movementPattern: exercise.movementPattern,
+  unilateral: exercise.unilateral,
 });
 
 const feedbackValue = (value: number): 1 | 2 | 3 | 4 | 5 =>
   Math.max(1, Math.min(5, Math.round(value))) as 1 | 2 | 3 | 4 | 5;
+
+const numericOrNull = (value: string) => {
+  if (value.trim() === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const trackingModeForEntry = (entry: ExerciseEntry): TrackingMode => {
+  if (entry.snapshot.trackingMode) return entry.snapshot.trackingMode;
+  if (entry.snapshot.suffix === "seconds") return "duration";
+  if (entry.snapshot.incrementKg === 0) return "bodyweight-reps";
+  return "weight-reps";
+};
+
+const loggedEffort = (rpe: string): LoggedSet["effort"] => {
+  const value = numericOrNull(rpe);
+  return value != null && value >= 1 && value <= 10 ? { mode: "rpe", value } : null;
+};
+
+const loggedFromLegacy = (set: SetEntry, mode: TrackingMode): LoggedSet => {
+  const base = { id: set.id, kind: set.kind, effort: loggedEffort(set.rpe), done: set.done };
+  const reps = numericOrNull(set.reps);
+  const weight = numericOrNull(set.weight);
+  if (mode === "duration") return { ...base, trackingMode: "duration", seconds: reps };
+  if (mode === "distance") return { ...base, trackingMode: "distance", distanceMeters: reps };
+  if (mode === "bodyweight-reps") return { ...base, trackingMode: "bodyweight-reps", reps };
+  if (mode === "assisted-reps") return { ...base, trackingMode: "assisted-reps", assistanceKg: weight, reps };
+  if (mode === "weighted-bodyweight-reps") return { ...base, trackingMode: "weighted-bodyweight-reps", addedWeightKg: weight, reps };
+  return { ...base, trackingMode: "weight-reps", weightKg: weight, reps };
+};
+
+const withSynchronizedSets = (entry: ExerciseEntry, sets: SetEntry[]): ExerciseEntry => ({
+  ...entry,
+  sets,
+  loggedSets: sets.map((set) => loggedFromLegacy(set, trackingModeForEntry(entry))),
+});
 
 export function useAppState() {
   const [state, setState] = useState<AppState>(() => loadState());
@@ -142,69 +184,39 @@ export function useAppState() {
   const startWorkout = useCallback((dayId: DayId) => {
     setState((current) => {
       if (current.draft) return current;
-      const program = getProgram(current.settings.programId, current.customPrograms);
-      const workout = getWorkout(program.id, dayId, current.customPrograms);
-      if (!workout) return current;
-      const exercises = allExercises(current.customExercises);
-      const allowed = new Set(availableExerciseIds(current.profile, current.customExercises));
-      const progress = current.programProgress[program.id] ?? { startedAt: todayISO(), currentWeek: 1, autoDeload: true };
+      const progress = current.programProgress[current.settings.programId] ?? {
+        startedAt: todayISO(),
+        currentWeek: 1,
+        autoDeload: true,
+      };
       const targetRpe = phaseForWeek(programWeek(progress.startedAt)).targetRpe;
-
-      const priority = new Set(current.profile.priorityMuscles);
-      const head = workout.exercises.slice(0, 2);
-      const tail = workout.exercises.slice(2).sort((a, b) => Number(priority.has(exercises[b]?.primary)) - Number(priority.has(exercises[a]?.primary)));
-      const maxExercises = current.profile.sessionMinutes <= 40 ? 5 : current.profile.sessionMinutes <= 60 ? 6 : current.profile.sessionMinutes <= 75 ? 7 : 8;
-      const personalizedIds = [...head, ...tail].slice(0, maxExercises);
-      const strengthCompounds = new Set(["back_squat", "barbell_bench", "barbell_rdl", "db_ohp", "pull_up", "leg_press"]);
-
-      const entries: ExerciseEntry[] = personalizedIds.flatMap((originalId) => {
-        const original = exercises[originalId];
-        if (!original) return [];
-        const chosenId = allowed.has(originalId)
-          ? originalId
-          : original.alternatives.find((alternative) => allowed.has(alternative)) ?? originalId;
-        const exercise = exercises[chosenId] ?? original;
-        const strengthMode = current.profile.goal === "strength" && strengthCompounds.has(exercise.id);
-        const generalMode = current.profile.goal === "general" || current.profile.goal === "fat-loss";
-        const experienceAdjustment = current.profile.experience === "beginner" ? -1 : 0;
-        const targetSets = Math.max(2, (strengthMode ? Math.max(3, exercise.sets + 1) : generalMode ? Math.min(3, exercise.sets) : exercise.sets) + experienceAdjustment);
-        const targetMin = strengthMode ? 3 : generalMode ? Math.max(8, exercise.min) : exercise.min;
-        const targetMax = strengthMode ? 6 : generalMode ? Math.max(12, exercise.max) : exercise.max;
-        const targetRest = strengthMode ? Math.max(150, exercise.rest) : generalMode ? Math.min(90, exercise.rest) : exercise.rest;
-        const personalizedExercise = { ...exercise, sets: targetSets, min: targetMin, max: targetMax, rest: targetRest };
-        return [{
-          exerciseId: exercise.id,
-          replacedExerciseId: chosenId !== originalId ? originalId : undefined,
-          snapshot: snapshotExercise(exercise),
-          target: {
-            sets: targetSets,
-            min: targetMin,
-            max: targetMax,
-            rest: targetRest,
-            targetRpe,
-          },
-          sets: autofillSetsFromHistory(current.history, personalizedExercise, targetSets, targetRpe),
-          note: "",
-        }];
+      const planned = buildWorkoutEntries({
+        programId: current.settings.programId,
+        dayId,
+        customPrograms: current.customPrograms,
+        customExercises: current.customExercises,
+        profile: current.profile,
+        history: current.history,
+        targetRpe,
       });
-      if (!entries.length) return current;
+      if (!planned || !planned.entries.length) return current;
 
       return touch({
         ...current,
         draft: {
           id: uid(),
-          programId: program.id,
+          programId: planned.program.id,
           programSnapshot: {
-            id: program.id,
-            name: program.name,
-            version: program.version,
-            dayId: workout.id,
-            workoutName: workout.name,
+            id: planned.program.id,
+            name: planned.program.name,
+            version: planned.program.version,
+            dayId: planned.workout.id,
+            workoutName: planned.workout.name,
           },
-          dayId: workout.id,
+          dayId: planned.workout.id,
           startedAt: new Date().toISOString(),
           currentEx: 0,
-          exercises: entries,
+          exercises: planned.entries,
           note: "",
           weeklyGoalAtStart: current.settings.weeklyGoal,
         },
@@ -216,9 +228,11 @@ export function useAppState() {
   const updateSet = useCallback((exerciseIndex: number, setIndex: number, patch: Partial<SetEntry>) => {
     setState((current) => {
       if (!current.draft) return current;
-      const exercises = current.draft.exercises.map((entry, index) => index === exerciseIndex
-        ? { ...entry, sets: entry.sets.map((set, index2) => index2 === setIndex ? { ...set, ...patch } : set) }
-        : entry);
+      const exercises = current.draft.exercises.map((entry, index) => {
+        if (index !== exerciseIndex) return entry;
+        const sets = entry.sets.map((set, index2) => index2 === setIndex ? { ...set, ...patch } : set);
+        return withSynchronizedSets(entry, sets);
+      });
       return touch({ ...current, draft: { ...current.draft, exercises } });
     });
   }, []);
@@ -230,11 +244,14 @@ export function useAppState() {
     const rest = entry.target.rest;
     setState((current) => {
       if (!current.draft) return current;
-      const live = current.draft.exercises[exerciseIndex]?.sets[setIndex];
-      if (!live || live.done || !isCompletableSet(live)) return current;
-      const exercises = current.draft.exercises.map((exercise, index) => index === exerciseIndex
-        ? { ...exercise, sets: exercise.sets.map((item, index2) => index2 === setIndex ? { ...item, done: true } : item) }
-        : exercise);
+      const liveEntry = current.draft.exercises[exerciseIndex];
+      const live = liveEntry?.sets[setIndex];
+      if (!liveEntry || !live || live.done || !isCompletableSet(live)) return current;
+      const exercises = current.draft.exercises.map((exercise, index) => {
+        if (index !== exerciseIndex) return exercise;
+        const sets = exercise.sets.map((item, index2) => index2 === setIndex ? { ...item, done: true } : item);
+        return withSynchronizedSets(exercise, sets);
+      });
       return touch({ ...current, draft: { ...current.draft, exercises } });
     });
     return rest;
@@ -253,9 +270,18 @@ export function useAppState() {
   const addSet = useCallback((exerciseIndex: number, kind: SetKind = "working") => {
     setState((current) => {
       if (!current.draft) return current;
-      const exercises = current.draft.exercises.map((entry, index) => index === exerciseIndex
-        ? { ...entry, sets: [...entry.sets, { id: uid(), kind, weight: entry.sets.at(-1)?.weight ?? "", reps: "", rpe: "", done: false }] }
-        : entry);
+      const exercises = current.draft.exercises.map((entry, index) => {
+        if (index !== exerciseIndex) return entry;
+        const nextSet: SetEntry = {
+          id: uid(),
+          kind,
+          weight: entry.sets.at(-1)?.weight ?? "",
+          reps: "",
+          rpe: "",
+          done: false,
+        };
+        return withSynchronizedSets(entry, [...entry.sets, nextSet]);
+      });
       return touch({ ...current, draft: { ...current.draft, exercises } });
     });
   }, []);
@@ -266,7 +292,7 @@ export function useAppState() {
       const exercises = current.draft.exercises.map((entry, index) => {
         if (index !== exerciseIndex || entry.sets.length <= 1) return entry;
         const target = setIndex ?? entry.sets.length - 1;
-        return { ...entry, sets: entry.sets.filter((_, setPosition) => setPosition !== target) };
+        return withSynchronizedSets(entry, entry.sets.filter((_, setPosition) => setPosition !== target));
       });
       return touch({ ...current, draft: { ...current.draft, exercises } });
     });
@@ -278,14 +304,13 @@ export function useAppState() {
       const entry = current.draft.exercises[exerciseIndex];
       const previous = entry?.sets[setIndex - 1];
       if (!entry || !previous || entry.sets[setIndex]?.done) return current;
-      const exercises = current.draft.exercises.map((item, index) => index === exerciseIndex
-        ? {
-          ...item,
-          sets: item.sets.map((set, position) => position === setIndex
-            ? { ...set, weight: previous.weight, reps: previous.reps, rpe: previous.rpe }
-            : set),
-        }
-        : item);
+      const exercises = current.draft.exercises.map((item, index) => {
+        if (index !== exerciseIndex) return item;
+        const sets = item.sets.map((set, position) => position === setIndex
+          ? { ...set, weight: previous.weight, reps: previous.reps, rpe: previous.rpe }
+          : set);
+        return withSynchronizedSets(item, sets);
+      });
       return touch({ ...current, draft: { ...current.draft, exercises } });
     });
   }, []);
@@ -309,21 +334,29 @@ export function useAppState() {
       const replacement = exercisesById[exerciseId];
       const currentEntry = current.draft.exercises[exerciseIndex];
       if (!replacement || !currentEntry) return current;
-      const replacementEntry: ExerciseEntry = {
+      const setScheme = currentEntry.sets.map((set) => replacement.trackingMode === "duration"
+        ? { kind: set.kind, targetSeconds: { min: replacement.min, max: replacement.max } }
+        : replacement.trackingMode === "distance"
+          ? { kind: set.kind, targetDistanceMeters: { min: replacement.min, max: replacement.max } }
+          : { kind: set.kind, targetReps: { min: replacement.min, max: replacement.max } });
+      const prescription: ExercisePrescription = {
+        id: `${current.draft.dayId}:${replacement.id}:${exerciseIndex}:swap`,
         exerciseId: replacement.id,
-        replacedExerciseId: currentEntry.replacedExerciseId ?? currentEntry.exerciseId,
-        snapshot: snapshotExercise(replacement),
-        target: {
-          sets: replacement.sets,
-          min: replacement.min,
-          max: replacement.max,
-          rest: replacement.rest,
-          targetRpe: currentEntry.target.targetRpe,
-        },
-        sets: autofillSetsFromHistory(current.history, replacement, replacement.sets, currentEntry.target.targetRpe),
-        note: currentEntry.note,
+        order: exerciseIndex,
+        setScheme,
+        restSeconds: replacement.rest,
+        targetEffort: currentEntry.target.targetEffort ?? { mode: "rpe", value: currentEntry.target.targetRpe },
+        progression: defaultProgression(replacement),
+        coachingCue: replacement.technique,
+        optional: false,
+        priority: exerciseIndex < 2 ? "primary" : "secondary",
       };
-      const entries = current.draft.exercises.map((entry, index) => index === exerciseIndex ? replacementEntry : entry);
+      const replacementEntry = makeDraftEntry(prescription, replacement, current.history);
+      const entries = current.draft.exercises.map((entry, index) => index === exerciseIndex ? {
+        ...replacementEntry,
+        replacedExerciseId: currentEntry.replacedExerciseId ?? currentEntry.exerciseId,
+        note: currentEntry.note,
+      } : entry);
       return touch({ ...current, draft: { ...current.draft, exercises: entries } });
     });
   }, []);
@@ -332,7 +365,16 @@ export function useAppState() {
     setState((current) => {
       if (!current.draft) return current;
       const exercises = current.draft.exercises
-        .map((entry) => ({ ...entry, sets: entry.sets.filter((set) => set.done) }))
+        .map((entry) => {
+          const completedIndexes = entry.sets.flatMap((set, index) => set.done ? [index] : []);
+          return {
+            ...entry,
+            sets: completedIndexes.map((index) => entry.sets[index]),
+            loggedSets: entry.loggedSets
+              ? completedIndexes.flatMap((index) => entry.loggedSets?.[index] ? [entry.loggedSets[index]] : [])
+              : undefined,
+          };
+        })
         .filter((entry) => entry.sets.length > 0);
       const allSets = exercises.flatMap((entry) => entry.sets);
       if (!allSets.length) return current;
