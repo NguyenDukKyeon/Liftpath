@@ -47,7 +47,7 @@ test("PWA is installable, preserves history offline, and replaces stale shell ca
   expect(assetStatus).toEqual({ manifest: 200, icon: 200 });
 
   await page.evaluate(async () => {
-    await caches.open("liftpath-shell-v7");
+    await caches.open("liftpath-shell-v8");
   });
   await context.setOffline(true);
   await page.reload({ waitUntil: "domcontentloaded" });
@@ -78,7 +78,7 @@ test("PWA is installable, preserves history offline, and replaces stale shell ca
     await navigator.serviceWorker.ready;
   });
 
-  await expect.poll(() => page.evaluate(() => caches.keys())).not.toContain("liftpath-shell-v7");
-  await expect.poll(() => page.evaluate(() => caches.keys())).toContain("liftpath-shell-v8");
+  await expect.poll(() => page.evaluate(() => caches.keys())).not.toContain("liftpath-shell-v8");
+  await expect.poll(() => page.evaluate(() => caches.keys())).toContain("liftpath-shell-v9");
   await page.screenshot({ path: testInfo.outputPath("pwa-offline-restored.png"), fullPage: true });
 });
