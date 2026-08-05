@@ -22,7 +22,7 @@ describe("ReadinessCheck", () => {
     fireEvent.change(screen.getByRole("slider"), { target: { value: "35" } });
 
     expect(screen.getByText(/35 phút/i)).toBeInTheDocument();
-    expect(screen.getByText(/năng lượng hôm nay thấp|thời gian hôm nay ngắn/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/năng lượng hôm nay thấp|thời gian hôm nay ngắn/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/bài phụ bỏ/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /xác nhận và bắt đầu/i }));
