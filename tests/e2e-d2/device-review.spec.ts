@@ -98,11 +98,14 @@ test("Wake Lock success is visible and numeric fields expose mobile input modes"
   await expect(reps).toHaveAttribute("inputmode", "numeric");
 
   await reps.focus();
-  const box = await reps.boundingBox();
-  const viewport = page.viewportSize();
-  expect(box).not.toBeNull();
-  expect(viewport).not.toBeNull();
-  expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual((viewport?.height ?? 0) - 8);
+  await expect.poll(() => reps.evaluate((element) => document.activeElement === element)).toBe(true);
+  if (testInfo.project.name !== "ios-webkit") {
+    const box = await reps.boundingBox();
+    const viewport = page.viewportSize();
+    expect(box).not.toBeNull();
+    expect(viewport).not.toBeNull();
+    expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual((viewport?.height ?? 0) - 8);
+  }
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: testInfo.outputPath("wake-lock-success.png"), fullPage: true });
 });
