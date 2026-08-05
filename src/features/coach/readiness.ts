@@ -113,9 +113,13 @@ export const adjustWorkoutForReadiness = (
 
   if (allowStart && estimateMinutes(prescriptions) > input.availableMinutes) {
     const removable = prescriptions
-      .filter((item) => item.optional || item.priority === "accessory")
+      .filter((item) => item.priority !== "primary")
       .sort((a, b) => {
-        const priorityScore = (item: ExercisePrescription) => item.priority === "accessory" ? 2 : item.optional ? 1 : 0;
+        const priorityScore = (item: ExercisePrescription) => {
+          if (item.priority === "accessory") return 3;
+          if (item.optional) return 2;
+          return 1;
+        };
         return priorityScore(b) - priorityScore(a) || b.order - a.order;
       });
     for (const item of removable) {
