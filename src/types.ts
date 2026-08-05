@@ -301,14 +301,14 @@ export type UserProfile = {
   availableDays: AvailableTrainingDays;
   sessionMinutes: 40 | 60 | 75 | 90;
   equipment: EquipmentId[];
-  preferredDays: number[];
+  preferredDays?: number[];
   priorityMuscles: MuscleGroup[];
-  restrictions: StructuredRestriction[];
-  profileNotes: string;
-  effortLanguage: EffortLanguage;
-  movementFamiliarity: MovementFamiliarity;
-  consistencyWeeks: number;
-  recentLoads: Partial<Record<ExerciseId, number>>;
+  restrictions?: StructuredRestriction[];
+  profileNotes?: string;
+  effortLanguage?: EffortLanguage;
+  movementFamiliarity?: MovementFamiliarity;
+  consistencyWeeks?: number;
+  recentLoads?: Partial<Record<ExerciseId, number>>;
   /** @deprecated compatibility field removed by the Guided Coach onboarding flow */
   limitations?: string;
 };
