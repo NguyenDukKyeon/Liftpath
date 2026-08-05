@@ -6,6 +6,8 @@ import {
 import { migrateV3ToV4, type V4TrainingProgram } from "./migrations/v3-to-v4.js";
 import type {
   AppState,
+  ExercisePreference,
+  ExercisePreferenceReason,
   ProgramProgress,
   Session,
   Settings,
@@ -61,6 +63,22 @@ const normalizeCoachProfile = (profile: UserProfile): UserProfile => ({
   recentLoads: isObject(profile.recentLoads) ? profile.recentLoads : {},
 });
 
+const preferenceReasons: ExercisePreferenceReason[] = ["equipment", "comfort", "pain", "availability", "other"];
+const normalizePreferences = (value: unknown): ExercisePreference[] => {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item): ExercisePreference[] => {
+    if (!isObject(item) || typeof item.exerciseId !== "string") return [];
+    if (item.status !== "preferred" && item.status !== "avoid") return [];
+    const reason = preferenceReasons.includes(item.reason as ExercisePreferenceReason)
+      ? item.reason as ExercisePreferenceReason
+      : undefined;
+    const updatedAt = typeof item.updatedAt === "string" && Number.isFinite(new Date(item.updatedAt).getTime())
+      ? item.updatedAt
+      : new Date(0).toISOString();
+    return [{ exerciseId: item.exerciseId, status: item.status, reason, updatedAt }];
+  });
+};
+
 export const defaultProfile = (): UserProfile => ({
   onboardingComplete: false,
   goal: "hypertrophy",
@@ -110,6 +128,7 @@ export const defaultState = (): AppState => ({
   bodyStats: [],
   customExercises: [],
   customPrograms: [],
+  exercisePreferences: [],
   lastRecap: null,
   sync: {
     enabled: false,
@@ -139,6 +158,7 @@ export const normalizeState = (value: unknown): AppState => {
   if (!isObject(value)) return defaultState();
   const sourceDraft = isObject(value.draft) ? value.draft : null;
   const readiness = sourceDraft && isObject(sourceDraft.readiness) ? sourceDraft.readiness : null;
+  const preferences = normalizePreferences(value.exercisePreferences);
   const { state, warnings } = migrateV3ToV4(prepareMigrationInput(value));
   const draft = state.draft && readiness
     ? { ...state.draft, readiness }
@@ -149,6 +169,7 @@ export const normalizeState = (value: unknown): AppState => {
     profile: normalizeCoachProfile(state.profile),
     draft,
     customPrograms: state.customPrograms.map(runtimeProgramView),
+    exercisePreferences: preferences,
     migrationWarnings: warnings,
   };
 };
