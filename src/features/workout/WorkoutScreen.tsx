@@ -3,6 +3,7 @@ import {
   ArrowDown,
   ArrowUp,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Dumbbell,
@@ -12,7 +13,6 @@ import {
   Plus,
   RefreshCw,
   Save,
-  Timer,
   Trash2,
   X,
   Zap,
@@ -122,7 +122,6 @@ export function WorkoutScreen({
   });
   const complete = draft.exercises.reduce((sum, item) => sum + item.sets.filter((set) => set.done).length, 0);
   const total = draft.exercises.reduce((sum, item) => sum + item.sets.length, 0);
-  const exerciseComplete = entry.sets.every((set) => set.done);
   const nextIncomplete = draft.exercises.findIndex((item, index) => index > exerciseIndex && !item.sets.every((set) => set.done));
 
   const afterSet = (seconds: number) => {
@@ -136,19 +135,19 @@ export function WorkoutScreen({
   };
 
   return (
-    <div className="workout-shell guided-workout-shell">
-      <header className="workout-topbar">
-        <button className="icon-button subtle" type="button" aria-label="Hủy buổi tập" onClick={() => setConfirmCancel(true)}><X size={20} /></button>
+    <div className="workout-shell guided-workout-shell focused-coach-surface" data-ui="focused-coach">
+      <header className="workout-topbar focused-workout-topbar">
+        <button className="icon-button subtle" type="button" aria-label="Hủy buổi tập" onClick={() => setConfirmCancel(true)}><X size={19} /></button>
         <div className="workout-title"><span>{draft.programSnapshot.workoutName}</span><strong>{complete}/{total} hiệp hoàn thành</strong></div>
-        <button className="finish-button" type="button" disabled={!complete} onClick={() => setFinishOpen(true)}><Save size={16} /> Kết thúc</button>
+        <button className="finish-button" type="button" disabled={!complete} onClick={() => setFinishOpen(true)}><Save size={15} /> Kết thúc</button>
         <Progress value={total ? complete / total : 0} />
       </header>
 
-      <main className="workout-content guided-workout-content">
-        <div className="workout-context-bar">
-          <span><Dumbbell size={15} />{draft.programSnapshot.name}</span>
-          <span><Zap size={15} />{app.state.profile.effortLanguage === "rpe" ? `RPE ${entry.target.targetRpe}` : "Còn khoảng 2 reps"}</span>
-          {wakeLock.supported && <span className={wakeLock.locked ? "success-text" : ""}>{wakeLock.locked ? "Màn hình đang giữ sáng" : "Wake Lock chưa hoạt động"}</span>}
+      <main className="workout-content guided-workout-content focused-workout-content">
+        <div className="workout-context-bar focused-context-bar">
+          <span><Dumbbell size={14} />{draft.programSnapshot.name}</span>
+          <span><Zap size={14} />{app.state.profile.effortLanguage === "rpe" ? `RPE ${entry.target.targetRpe}` : "Còn khoảng 2 reps"}</span>
+          {wakeLock.supported && <span className={wakeLock.locked ? "success-text" : ""}>{wakeLock.locked ? "Giữ sáng" : "Wake Lock tắt"}</span>}
         </div>
 
         <div className="exercise-stepper" aria-label="Các bài trong buổi">
@@ -165,11 +164,11 @@ export function WorkoutScreen({
           ))}
         </div>
 
-        <section className="active-exercise card">
-          <header className="exercise-heading guided-exercise-heading">
+        <section className="active-exercise card focused-active-exercise">
+          <header className="exercise-heading guided-exercise-heading focused-exercise-heading">
             <div className="exercise-index">{exerciseIndex + 1}</div>
             <div className="grow">
-              <span className="eyebrow">BÀI HIỆN TẠI · {entry.snapshot.primary.toUpperCase()}</span>
+              <span className="eyebrow">BÀI {exerciseIndex + 1} / {draft.exercises.length} · {entry.snapshot.primary.toUpperCase()}</span>
               <h1>{entry.snapshot.name}</h1>
               <p>{entry.snapshot.equipment} · {entry.target.min}–{entry.target.max} {entry.snapshot.suffix}</p>
             </div>
@@ -189,10 +188,8 @@ export function WorkoutScreen({
             onRest={afterSet}
           />
 
-          <p className="technique-note guided-technique-note"><Info size={16} />{meta.technique ?? "Ưu tiên biên độ kiểm soát và dừng khi có đau bất thường."}</p>
-
           {timer.active && (
-            <section className={`rest-timer ${timer.remaining === 0 ? "finished" : ""}`} aria-live="polite">
+            <section className={`rest-timer focused-rest-timer ${timer.remaining === 0 ? "finished" : ""}`} aria-live="polite">
               <div className="timer-ring" style={{ "--timer-progress": `${timer.progress * 360}deg` } as CSSProperties}>
                 <div><small>{timer.remaining === 0 ? "HẾT GIỜ" : "ĐANG NGHỈ"}</small><strong>{formatSeconds(timer.remaining)}</strong></div>
               </div>
@@ -200,28 +197,34 @@ export function WorkoutScreen({
             </section>
           )}
 
-          <section className="workout-tools" aria-label="Công cụ và chỉnh sửa buổi tập">
-            <div className="workout-tool-row">
-              <WarmupCalculator entry={entry} insert={(sets) => app.insertWarmupSets(exerciseIndex, sets)} />
-              <PlateCalculator entry={entry} />
-              <button className="secondary-button small" type="button" onClick={() => setPickerMode("replace")}><RefreshCw size={15} />Đổi bài</button>
-            </div>
-            <div className="workout-tool-row">
-              <button type="button" className="secondary-button small" disabled={entry.sets.length <= 1} onClick={() => app.removeSet(exerciseIndex)}><Minus size={15} />Bớt hiệp</button>
-              <button type="button" className="secondary-button small" onClick={() => app.addSet(exerciseIndex, "working")}><Plus size={15} />Thêm hiệp</button>
-              <button type="button" className="secondary-button small" onClick={() => setPickerMode("add")}><ListPlus size={15} />Thêm bài</button>
-            </div>
-            <div className="workout-tool-row">
-              <button type="button" className="secondary-button small" disabled={exerciseIndex === 0} onClick={() => app.moveExerciseInDraft(exerciseIndex, -1)}><ArrowUp size={15} />Đưa lên</button>
-              <button type="button" className="secondary-button small" disabled={exerciseIndex === draft.exercises.length - 1} onClick={() => app.moveExerciseInDraft(exerciseIndex, 1)}><ArrowDown size={15} />Đưa xuống</button>
-              <button type="button" className="danger-text-button" disabled={draft.exercises.length <= 1} onClick={() => app.removeExerciseFromDraft(exerciseIndex)}><Trash2 size={15} />Bỏ bài</button>
-            </div>
+          <section className="focused-quick-tools" aria-label="Công cụ nhanh">
+            <button className="secondary-button small" type="button" onClick={() => setPickerMode("replace")}><RefreshCw size={16} />Đổi bài</button>
+            <WarmupCalculator entry={entry} insert={(sets) => app.insertWarmupSets(exerciseIndex, sets)} />
+            <PlateCalculator entry={entry} />
+            <button type="button" className="secondary-button small" onClick={() => app.addSet(exerciseIndex, "working")}><Plus size={16} />Thêm hiệp</button>
           </section>
 
-          <label className="note-field"><span>Ghi chú bài tập</span><textarea value={entry.note} placeholder="Kỹ thuật, máy đang dùng, cảm giác đau/mỏi…" onChange={(event) => app.updateExerciseNote(exerciseIndex, event.target.value)} /></label>
+          <details className="workout-advanced">
+            <summary><span>Chi tiết & chỉnh sửa</span><ChevronDown size={17} /></summary>
+            <div className="workout-advanced-content">
+              <p className="technique-note guided-technique-note"><Info size={16} />{meta.technique ?? "Ưu tiên biên độ kiểm soát và dừng khi có đau bất thường."}</p>
+              <section className="workout-tools" aria-label="Chỉnh sửa buổi tập">
+                <div className="workout-tool-row">
+                  <button type="button" className="secondary-button small" disabled={entry.sets.length <= 1} onClick={() => app.removeSet(exerciseIndex)}><Minus size={15} />Bớt hiệp</button>
+                  <button type="button" className="secondary-button small" onClick={() => setPickerMode("add")}><ListPlus size={15} />Thêm bài</button>
+                </div>
+                <div className="workout-tool-row">
+                  <button type="button" className="secondary-button small" disabled={exerciseIndex === 0} onClick={() => app.moveExerciseInDraft(exerciseIndex, -1)}><ArrowUp size={15} />Đưa lên</button>
+                  <button type="button" className="secondary-button small" disabled={exerciseIndex === draft.exercises.length - 1} onClick={() => app.moveExerciseInDraft(exerciseIndex, 1)}><ArrowDown size={15} />Đưa xuống</button>
+                  <button type="button" className="danger-text-button" disabled={draft.exercises.length <= 1} onClick={() => app.removeExerciseFromDraft(exerciseIndex)}><Trash2 size={15} />Bỏ bài</button>
+                </div>
+              </section>
+              <label className="note-field"><span>Ghi chú bài tập</span><textarea value={entry.note} placeholder="Kỹ thuật, máy đang dùng, cảm giác đau/mỏi…" onChange={(event) => app.updateExerciseNote(exerciseIndex, event.target.value)} /></label>
+            </div>
+          </details>
         </section>
 
-        <div className="workout-navigation">
+        <div className="workout-navigation focused-workout-navigation">
           <button type="button" disabled={exerciseIndex === 0} onClick={() => app.setCurrentExercise(exerciseIndex - 1)}><ChevronLeft size={18} />Bài trước</button>
           <button className="primary-button" type="button" disabled={exerciseIndex === draft.exercises.length - 1 && nextIncomplete < 0} onClick={() => app.setCurrentExercise(nextIncomplete >= 0 ? nextIncomplete : Math.min(draft.exercises.length - 1, exerciseIndex + 1))}>Bài tiếp theo<ChevronRight size={18} /></button>
         </div>
@@ -247,9 +250,9 @@ export function WorkoutScreen({
 
       {finishOpen && (
         <Modal title="Đánh giá và kết thúc" close={() => setFinishOpen(false)}>
-          <div className="feedback-form">
-            <label><span>Năng lượng hôm nay</span><div className="rating-row">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" className={feedback.energy === value ? "active" : ""} onClick={() => setFeedback({ ...feedback, energy: value as SessionFeedback["energy"] })}>{value}</button>)}</div></label>
-            <label><span>Độ đau mỏi</span><div className="rating-row">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" className={feedback.soreness === value ? "active" : ""} onClick={() => setFeedback({ ...feedback, soreness: value as SessionFeedback["soreness"] })}>{value}</button>)}</div></label>
+          <div className="feedback-form focused-feedback-form">
+            <label><span>Năng lượng hôm nay <small>Rất thấp ↔ Rất tốt</small></span><div className="rating-row">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" className={feedback.energy === value ? "active" : ""} onClick={() => setFeedback({ ...feedback, energy: value as SessionFeedback["energy"] })}>{value}</button>)}</div></label>
+            <label><span>Độ đau mỏi <small>Không đáng kể ↔ Rất nhiều</small></span><div className="rating-row">{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" className={feedback.soreness === value ? "active" : ""} onClick={() => setFeedback({ ...feedback, soreness: value as SessionFeedback["soreness"] })}>{value}</button>)}</div></label>
             <label><span>Ghi chú buổi tập</span><textarea value={feedback.note} placeholder="Điều gì diễn ra tốt hoặc cần điều chỉnh?" onChange={(event) => setFeedback({ ...feedback, note: event.target.value })} /></label>
             <div className="dialog-actions"><button className="secondary-button" type="button" onClick={() => setFinishOpen(false)}>Tiếp tục tập</button><button className="primary-button" type="button" onClick={() => { finish(); setFinishOpen(false); }}><Save size={16} />Lưu buổi tập</button></div>
           </div>
