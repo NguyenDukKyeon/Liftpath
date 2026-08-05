@@ -23,7 +23,9 @@ describe("ReadinessCheck", () => {
 
     expect(screen.getByText(/35 phút/i)).toBeInTheDocument();
     expect(screen.getAllByText(/năng lượng hôm nay thấp|thời gian hôm nay ngắn/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/bài phụ bỏ/i)).toBeInTheDocument();
+    const removedValue = screen.getByText("bài phụ bỏ").closest("span")?.querySelector("strong");
+    expect(removedValue).not.toBeNull();
+    expect(removedValue).not.toHaveTextContent("0");
 
     await user.click(screen.getByRole("button", { name: /xác nhận và bắt đầu/i }));
     expect(confirm).toHaveBeenCalledTimes(1);
