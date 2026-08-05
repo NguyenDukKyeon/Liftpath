@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { defaultState } from "../src/domain/storage.js";
+import { defaultState, normalizeState } from "../src/domain/storage.js";
 import {
   createDraftAfterReadiness,
   prepareWorkoutFromState,
@@ -38,6 +38,24 @@ test("confirming readiness creates a draft with an adjustment snapshot", () => {
   assert.ok(result.draft);
   assert.equal(result.draft.readiness.input.availableMinutes, 60);
   assert.equal(result.draft.exercises.length, result.adjustment.value.prescriptions.length);
+});
+
+test("readiness snapshot survives storage normalization", () => {
+  const state = readyState();
+  const prepared = prepareWorkoutFromState(state, "FB-A");
+  assert.ok(prepared);
+  const result = createDraftAfterReadiness(state, prepared, {
+    energy: "low",
+    soreness: "manageable",
+    pain: null,
+    availableMinutes: 45,
+  });
+  assert.ok(result.draft);
+  const normalized = normalizeState({ ...state, draft: result.draft });
+  const readiness = (normalized.draft as typeof result.draft)?.readiness;
+  assert.ok(readiness);
+  assert.equal(readiness.input.energy, "low");
+  assert.ok(readiness.appliedReasonCodes.includes("readiness-low-energy"));
 });
 
 test("sharp pain blocks draft creation and preserves the prepared workout", () => {
