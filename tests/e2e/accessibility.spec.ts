@@ -26,25 +26,36 @@ const assertTouchTarget = async (locator: Locator, label: string) => {
   expect(box!.height, `${label} height`).toBeGreaterThanOrEqual(44);
 };
 
+const assertInsideViewport = async (page: Page, locator: Locator, label: string) => {
+  const box = await locator.boundingBox();
+  const viewport = page.viewportSize();
+  expect(box, `${label} must be rendered`).not.toBeNull();
+  expect(viewport, `${label} viewport must exist`).not.toBeNull();
+  expect(box!.y, `${label} top`).toBeGreaterThanOrEqual(0);
+  expect(box!.y + box!.height, `${label} bottom`).toBeLessThanOrEqual(viewport!.height - 8);
+};
+
 test("@a11y onboarding has no serious violations, overflow, or undersized primary action", async ({ page }) => {
   await clearLiftPathStorage(page);
   await page.goto("/");
 
+  await expect(page.locator('[data-ui="focused-coach"]')).toBeVisible();
   await assertNoSeriousViolations(page);
   await assertNoHorizontalOverflow(page);
   await assertTouchTarget(page.getByRole("button", { name: /tiếp tục/i }), "Onboarding continue");
 });
 
-test("@a11y readiness has no serious violations, overflow, or undersized confirmation", async ({ page }) => {
+test("@a11y readiness has no serious violations, overflow, or undersized fast action", async ({ page }) => {
   await seedState(page, returningUserState());
   await page.goto("/");
   await page.getByRole("button", { name: /bắt đầu tập/i }).first().click();
 
+  await expect(page.locator('[data-ui="focused-coach"]')).toBeVisible();
   await assertNoSeriousViolations(page);
   await assertNoHorizontalOverflow(page);
   await assertTouchTarget(
-    page.getByRole("button", { name: /xác nhận và bắt đầu/i }),
-    "Readiness confirmation",
+    page.getByRole("button", { name: /tập như kế hoạch/i }),
+    "Readiness fast action",
   );
 });
 
@@ -52,29 +63,25 @@ test("@a11y workout has no serious violations, overflow, or hidden focused set i
   await seedState(page, activeWorkoutState());
   await page.goto("/");
 
+  await expect(page.locator('[data-ui="focused-coach"]')).toBeVisible();
   await assertNoSeriousViolations(page);
   await assertNoHorizontalOverflow(page);
-  await assertTouchTarget(
-    page.getByRole("button", { name: /hoàn thành hiệp 1/i }),
-    "Complete set",
-  );
+  const completeSet = page.getByRole("button", { name: /hoàn thành hiệp 1/i });
+  await assertTouchTarget(completeSet, "Complete set");
+  await assertInsideViewport(page, completeSet, "Complete set above the fold");
   await assertTouchTarget(page.getByRole("button", { name: /^kết thúc$/i }), "Finish workout");
 
   const finalInput = page.locator('input[type="number"]:visible').last();
   await finalInput.scrollIntoViewIfNeeded();
   await finalInput.focus();
-  const box = await finalInput.boundingBox();
-  const viewport = page.viewportSize();
-  expect(box).not.toBeNull();
-  expect(viewport).not.toBeNull();
-  expect(box!.y).toBeGreaterThanOrEqual(0);
-  expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height - 8);
+  await assertInsideViewport(page, finalInput, "Focused set input");
 });
 
 test("@a11y recap has no serious violations, overflow, or undersized completion", async ({ page }) => {
   await seedState(page, recapUserState());
   await page.goto("/");
 
+  await expect(page.locator('[data-ui="focused-coach"]')).toBeVisible();
   await assertNoSeriousViolations(page);
   await assertNoHorizontalOverflow(page);
   await assertTouchTarget(page.getByRole("button", { name: /^hoàn tất$/i }), "Recap completion");
