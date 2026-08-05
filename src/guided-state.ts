@@ -1,7 +1,17 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useAppState } from "./state.js";
-import type { PlanRecommendation } from "./features/coach/contracts.js";
-import type { ProgramId, TrainingProgram, UserProfile } from "./types.js";
+import type {
+  CoachDecision,
+  PlanRecommendation,
+  ReadinessAdjustment,
+  ReadinessInput,
+} from "./features/coach/contracts.js";
+import {
+  createDraftAfterReadiness,
+  prepareWorkoutFromState,
+  type PreparedWorkout,
+} from "./features/workout/preparation.js";
+import type { DayId, ProgramId, TrainingProgram, UserProfile } from "./types.js";
 
 const runtimeProgramFromRecommendation = (
   recommendation: PlanRecommendation,
@@ -21,6 +31,7 @@ const runtimeProgramFromRecommendation = (
 
 export function useGuidedAppState() {
   const base = useAppState();
+  const [preparedWorkout, setPreparedWorkout] = useState<PreparedWorkout | null>(null);
 
   const completeOnboarding = useCallback((
     profile: UserProfile,
@@ -49,8 +60,35 @@ export function useGuidedAppState() {
     });
   }, [base]);
 
+  const prepareWorkout = useCallback((dayId: DayId) => {
+    const prepared = prepareWorkoutFromState(base.state, dayId);
+    if (prepared) setPreparedWorkout(prepared);
+  }, [base.state]);
+
+  const cancelPreparedWorkout = useCallback(() => setPreparedWorkout(null), []);
+
+  const confirmReadiness = useCallback((
+    input: ReadinessInput,
+  ): CoachDecision<ReadinessAdjustment> | null => {
+    if (!preparedWorkout) return null;
+    const result = createDraftAfterReadiness(base.state, preparedWorkout, input);
+    if (!result.draft) return result.adjustment;
+    base.replaceState({
+      ...base.state,
+      draft: result.draft,
+      lastRecap: null,
+    });
+    setPreparedWorkout(null);
+    return result.adjustment;
+  }, [base, preparedWorkout]);
+
   return {
     ...base,
     completeOnboarding,
+    preparedWorkout,
+    prepareWorkout,
+    startWorkout: prepareWorkout,
+    confirmReadiness,
+    cancelPreparedWorkout,
   };
 }
