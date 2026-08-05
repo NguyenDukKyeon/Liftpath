@@ -10,6 +10,11 @@ const expectNoHorizontalOverflow = async (page: import("@playwright/test").Page)
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
 };
 
+const captureViewport = async (page: import("@playwright/test").Page, path: string) => {
+  await page.waitForTimeout(300);
+  await page.screenshot({ path, fullPage: false });
+};
+
 test("onboarding selections and notes survive backward navigation", async ({ page }, testInfo) => {
   await clearLiftPathStorage(page);
   await page.goto("/");
@@ -35,7 +40,8 @@ test("onboarding selections and notes survive backward navigation", async ({ pag
   await page.getByRole("button", { name: /tiếp tục/i }).click();
   await expect(notes).toHaveValue("D2: giữ ghi chú khi quay lại bước trước");
   await expectNoHorizontalOverflow(page);
-  await page.screenshot({ path: testInfo.outputPath("onboarding-review.png"), fullPage: true });
+  await page.locator(".guided-step").scrollIntoViewIfNeeded();
+  await captureViewport(page, testInfo.outputPath("onboarding-review.png"));
 });
 
 test("permission denial and Wake Lock failure never block set logging", async ({ page }, testInfo) => {
@@ -73,7 +79,8 @@ test("permission denial and Wake Lock failure never block set logging", async ({
   await page.getByRole("button", { name: /bỏ qua/i }).click();
   await expect(page.locator(".rest-timer")).toHaveCount(0);
   await expectNoHorizontalOverflow(page);
-  await page.screenshot({ path: testInfo.outputPath("permission-denial-workout.png"), fullPage: true });
+  await page.locator(".exercise-coach-card").scrollIntoViewIfNeeded();
+  await captureViewport(page, testInfo.outputPath("permission-denial-workout.png"));
 });
 
 test("Wake Lock success is visible and numeric fields expose mobile input modes", async ({ page }, testInfo) => {
@@ -107,5 +114,6 @@ test("Wake Lock success is visible and numeric fields expose mobile input modes"
     expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual((viewport?.height ?? 0) - 8);
   }
   await expectNoHorizontalOverflow(page);
-  await page.screenshot({ path: testInfo.outputPath("wake-lock-success.png"), fullPage: true });
+  await page.locator(".exercise-coach-card").scrollIntoViewIfNeeded();
+  await captureViewport(page, testInfo.outputPath("wake-lock-success.png"));
 });
