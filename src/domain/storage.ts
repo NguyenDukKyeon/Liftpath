@@ -46,7 +46,14 @@ export const defaultProfile = (): UserProfile => ({
   availableDays: 3,
   sessionMinutes: 60,
   equipment: ["dumbbell", "machine", "cable", "bodyweight", "bench"],
+  preferredDays: [1, 3, 5],
   priorityMuscles: [],
+  restrictions: [],
+  profileNotes: "",
+  effortLanguage: "simple-rir",
+  movementFamiliarity: "new",
+  consistencyWeeks: 0,
+  recentLoads: {},
   limitations: "",
 });
 
