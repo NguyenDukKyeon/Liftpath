@@ -1,0 +1,22 @@
+name: Redesign branch checks
+
+on:
+  push:
+    branches:
+      - agent/liftpath-4-1-ui-ux-redesign
+
+concurrency:
+  group: redesign-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  component:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test:component
