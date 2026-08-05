@@ -1,4 +1,4 @@
-const CACHE_NAME = "liftpath-shell-v9";
+const CACHE_NAME = "liftpath-shell-v10";
 const scopeUrl = new URL("./", self.registration.scope).href;
 const manifestUrl = new URL("manifest.webmanifest", self.registration.scope).href;
 const appIconUrl = new URL("app-icon-v3.svg?v=4", self.registration.scope).href;
@@ -52,10 +52,10 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(fetch(request).then((response) => {
       if (response.ok) void caches.open(CACHE_NAME).then((cache) => cache.put(scopeUrl, response.clone()));
       return response;
-    }).catch(async () => (await caches.match(scopeUrl)) || Response.error()));
+    }).catch(async () => (await caches.match(scopeUrl, { ignoreVary: true })) || Response.error()));
     return;
   }
-  event.respondWith(caches.match(request).then((cached) => cached || fetch(request).then((response) => {
+  event.respondWith(caches.match(request, { ignoreVary: true }).then((cached) => cached || fetch(request).then((response) => {
     if (response.ok && response.type === "basic") void caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
     return response;
   }).catch(() => Response.error())));
