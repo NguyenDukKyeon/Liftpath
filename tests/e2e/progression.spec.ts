@@ -8,10 +8,11 @@ test("returning user sees, copies, and applies the load progression", async ({ p
 
   await expect(page.getByText("Progression Test Plan").first()).toBeVisible();
   await page.getByRole("button", { name: /bắt đầu tập/i }).first().click();
-  await page.getByRole("button", { name: /xác nhận và bắt đầu/i }).click();
+  await page.getByRole("button", { name: /tập như kế hoạch/i }).click();
 
   const coach = page.getByLabel("Hướng dẫn của LiftPath");
   await expect(coach).toContainText("Tăng lên 22 kg");
+  await page.getByRole("button", { name: /xem lý do/i }).click();
   await expect(coach).toContainText(/đầu trên|working set|rep range/i);
 
   await page.getByRole("button", { name: /sao chép kết quả lần trước vào hiệp 1/i }).click();
