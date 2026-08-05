@@ -1,6 +1,6 @@
 # LiftPath 4.0 Guided Coach — Plan 02: Plan Builder, Onboarding and Readiness
 
-> **Execution status:** Checkpoint B implemented and verified on `agent/liftpath-4-guided-coach` at `e1f9b2645f0854d4b90bdfbf297a4e2fad91a32b`. GitHub Actions run `31011350859` passed type check, 40 tests, and production build. PR #4 remains draft and unmerged.
+> **Execution status:** Checkpoint B implemented and verified on `agent/liftpath-4-guided-coach`. The latest docs-only alignment commit is `32732ea5124abd5f35bd94823ad7bbdb6f8a4e4c`; GitHub Actions run `31011476024` passed type check, 40 tests, and production build. PR #4 remains draft and unmerged.
 
 ## Goal
 
@@ -65,16 +65,16 @@ Build the explainable plan recommendation layer, four-step onboarding, safe exer
 
 ## Verification evidence
 
-Exact head:
+Latest verified commit:
 
 ```text
-e1f9b2645f0854d4b90bdfbf297a4e2fad91a32b
+32732ea5124abd5f35bd94823ad7bbdb6f8a4e4c
 ```
 
 GitHub Actions run:
 
 ```text
-31011350859
+31011476024
 ```
 
 Fresh result:
