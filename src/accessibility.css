@@ -19,3 +19,8 @@
 .guided-workout-content {
   padding-bottom: max(58px, calc(env(safe-area-inset-bottom) + 16px));
 }
+
+.guided-set-row input,
+.guided-set-row select {
+  scroll-margin-block: 16px;
+}
