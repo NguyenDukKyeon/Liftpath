@@ -11,6 +11,7 @@ import "./d2-contrast.css";
 import "./features/core-funnel/focused-coach.css";
 import "./features/core-funnel/focused-coach-assets.css";
 import "./features/core-funnel/focused-workout.css";
+import "./features/core-funnel/focused-recap.css";
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
