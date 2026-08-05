@@ -1,0 +1,49 @@
+name: Bootstrap Guided Coach D dependencies
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  package-lock:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'agent/liftpath-4-guided-coach'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Configure LiftPath 4 scripts
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          packageJson.version = '4.0.0';
+          packageJson.scripts = {
+            ...packageJson.scripts,
+            'test:domain': 'node -e "require(\'fs\').rmSync(\'.test-dist\',{recursive:true,force:true})" && tsc -p tsconfig.test.json && node --test .test-dist/tests/*.test.js',
+            'test:component': 'vitest run',
+            'test:e2e': 'playwright test --grep-invert @a11y',
+            'test:a11y': 'playwright test --grep @a11y',
+            'check:fast': 'npm run lint && npm run test:domain && npm run test:component && npm run build',
+            'check': 'npm run check:fast && npm run test:e2e',
+            'test': 'npm run test:domain'
+          };
+          fs.writeFileSync('package.json', `${JSON.stringify(packageJson, null, 2)}\n`);
+          NODE
+      - name: Install exact test tool families
+        run: npm install --save-dev vitest jsdom @testing-library/react @testing-library/user-event @testing-library/jest-dom @playwright/test @axe-core/playwright
+      - name: Upload generated package files
+        uses: actions/upload-artifact@v4
+        with:
+          name: guided-coach-d-package-files
+          path: |
+            package.json
+            package-lock.json
+          if-no-files-found: error
