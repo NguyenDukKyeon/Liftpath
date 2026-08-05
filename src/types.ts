@@ -142,6 +142,15 @@ export type LoggedSet =
       durationSeconds?: number | null;
     });
 
+export type ExercisePreferenceStatus = "preferred" | "avoid";
+export type ExercisePreferenceReason = "equipment" | "comfort" | "pain" | "availability" | "other";
+export type ExercisePreference = {
+  exerciseId: ExerciseId;
+  status: ExercisePreferenceStatus;
+  reason?: ExercisePreferenceReason;
+  updatedAt: string;
+};
+
 export type MigrationWarning = {
   code: string;
   path: string;
@@ -236,6 +245,7 @@ export type ExerciseEntry = {
   loggedSets?: LoggedSet[];
   note: string;
   replacedExerciseId?: ExerciseId;
+  substitutionReason?: ExercisePreferenceReason;
 };
 
 export type ProgramSnapshot = {
@@ -365,6 +375,7 @@ export type AppState = {
   bodyStats: BodyStat[];
   customExercises: Exercise[];
   customPrograms: TrainingProgram[];
+  exercisePreferences?: ExercisePreference[];
   lastRecap: WorkoutRecap | null;
   sync: SyncConfig;
   migrationWarnings?: MigrationWarning[];
