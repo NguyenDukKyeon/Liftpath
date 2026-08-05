@@ -7,6 +7,7 @@ import "./features/workout/workout-guided.css";
 import "./features/workout/touch-targets.css";
 import "./features/workout/recap.css";
 import "./accessibility.css";
+import "./d2-contrast.css";
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
