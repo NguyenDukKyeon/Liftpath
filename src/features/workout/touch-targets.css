@@ -1,0 +1,12 @@
+.guided-set-actions {
+  display: grid;
+  min-width: 44px;
+  justify-items: center;
+}
+
+.guided-set-actions > button {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+}
