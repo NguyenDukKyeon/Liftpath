@@ -1,0 +1,13 @@
+:root {
+  --muted: #596359;
+}
+
+.guided-choice-card.selected small,
+.readiness-choice-grid button.selected small,
+.readiness-summary-grid small {
+  color: var(--ink-2);
+}
+
+.readiness-preview .eyebrow {
+  color: var(--accent-strong);
+}
