@@ -8,7 +8,7 @@ import {
   Settings,
   Sun,
 } from "lucide-react";
-import { useAppState } from "./state.js";
+import { useGuidedAppState } from "./guided-state.js";
 import { useRestTimer, useTrainingReminder } from "./timers.js";
 import type { ProgramId } from "./types.js";
 import { Onboarding } from "./components/Onboarding.js";
@@ -36,7 +36,7 @@ const NAV: Array<{ id: Tab; label: string; icon: IconComponent }> = [
 ];
 
 export default function App() {
-  const app = useAppState();
+  const app = useGuidedAppState();
   const [tab, setTab] = useState<Tab>("today");
   const [switchTarget, setSwitchTarget] = useState<ProgramId | null>(null);
   const [permissionRevision, bumpPermission] = useReducer((value: number) => value + 1, 0);
@@ -51,15 +51,15 @@ export default function App() {
   };
 
   if (!app.state.profile.onboardingComplete) {
-    return <Onboarding initial={app.state.profile} complete={app.completeOnboarding} />;
+    return <Onboarding initial={app.state.profile} onComplete={app.completeOnboarding} />;
   }
   if (app.state.draft) return <WorkoutScreen app={app} timer={timer} />;
 
   const meta: Record<Tab, { eyebrow: string; title: string; subtitle: string }> = {
-    today: { eyebrow: "LIFTPATH 3.0", title: "Buổi tập của bạn", subtitle: `${app.currentProgram.name} · Tuần ${app.week}` },
+    today: { eyebrow: "LIFTPATH 4.0", title: "Buổi tập của bạn", subtitle: `${app.currentProgram.name} · Tuần ${app.week}` },
     programs: { eyebrow: "PROGRAM BUILDER", title: "Giáo án", subtitle: "Template hệ thống và chương trình của bạn" },
     history: { eyebrow: "WORKOUT LOG", title: "Nhật ký", subtitle: `${app.state.history.length} buổi đã được snapshot an toàn` },
-    insights: { eyebrow: "PROGRESSION COACH", title: "Tiến bộ", subtitle: "Khuyến nghị dựa trên reps, RPE và lịch sử" },
+    insights: { eyebrow: "PROGRESSION COACH", title: "Tiến bộ", subtitle: "Khuyến nghị dựa trên reps, effort và lịch sử" },
     settings: { eyebrow: "DATA & SYNC", title: "Cài đặt", subtitle: "Backup, đồng bộ và quyền riêng tư" },
   };
 
@@ -99,5 +99,5 @@ export default function App() {
 }
 
 function Brand() {
-  return <div className="brand"><span className="brand-mark"><Dumbbell size={18} /></span><span><strong>LiftPath</strong><small>Personal progression coach</small></span></div>;
+  return <div className="brand"><span className="brand-mark"><Dumbbell size={18} /></span><span><strong>LiftPath</strong><small>Guided progression coach</small></span></div>;
 }
