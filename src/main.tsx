@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App.js";
 import { ErrorBoundary } from "./components/ErrorBoundary.js";
 import "./styles.css";
+import "./features/workout/workout-guided.css";
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
