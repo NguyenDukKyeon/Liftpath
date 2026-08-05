@@ -4,32 +4,201 @@ import type {
   Exercise,
   ExerciseEntry,
   ExerciseId,
+  ExercisePrescription,
+  LoggedSet,
   MuscleGroup,
   PersonalRecord,
   ProgressionRecommendation,
   Session,
   SetEntry,
+  SetPrescription,
+  TrackingMode,
   WeeklyReview,
   WorkoutRecap,
 } from "../types.js";
 
 export const uid = () => globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2, 11);
 
-const numeric = (value: string) => {
+const numeric = (value: string | number | null | undefined) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-export const isCompletableSet = (set: SetEntry) => {
-  const reps = numeric(set.reps);
-  const rpe = numeric(set.rpe);
-  return Number.isInteger(reps) && reps > 0 && rpe >= 1 && rpe <= 10;
-};
+const isLoggedSet = (set: SetEntry | LoggedSet): set is LoggedSet => "trackingMode" in set;
 
-export const setVolume = (set: SetEntry) => set.done ? numeric(set.weight) * numeric(set.reps) : 0;
-export const exerciseVolume = (entry: ExerciseEntry) => entry.sets.reduce((sum, set) => sum + setVolume(set), 0);
+export function isCompletableSet(set: LoggedSet): boolean;
+export function isCompletableSet(set: SetEntry): boolean;
+export function isCompletableSet(set: LoggedSet | SetEntry) {
+  if (!isLoggedSet(set)) {
+    const reps = numeric(set.reps);
+    return Number.isInteger(reps) && reps > 0;
+  }
+  switch (set.trackingMode) {
+    case "weight-reps":
+      return set.weightKg != null && set.weightKg >= 0 && set.reps != null && set.reps > 0;
+    case "bodyweight-reps":
+      return set.reps != null && set.reps > 0;
+    case "weighted-bodyweight-reps":
+      return set.addedWeightKg != null && set.addedWeightKg >= 0 && set.reps != null && set.reps > 0;
+    case "assisted-reps":
+      return set.assistanceKg != null && set.assistanceKg >= 0 && set.reps != null && set.reps > 0;
+    case "duration":
+      return set.seconds != null && set.seconds > 0;
+    case "distance":
+      return set.distanceMeters != null && set.distanceMeters > 0;
+  }
+}
+
+export function setVolume(set: LoggedSet): number;
+export function setVolume(set: SetEntry): number;
+export function setVolume(set: LoggedSet | SetEntry) {
+  if (!set.done) return 0;
+  if (!isLoggedSet(set)) return numeric(set.weight) * numeric(set.reps);
+  if (set.trackingMode === "weight-reps") return numeric(set.weightKg) * numeric(set.reps);
+  if (set.trackingMode === "weighted-bodyweight-reps") return numeric(set.addedWeightKg) * numeric(set.reps);
+  return 0;
+}
+
+export const exerciseVolume = (entry: ExerciseEntry) => {
+  if (entry.loggedSets?.length) return entry.loggedSets.reduce((sum, set) => sum + setVolume(set), 0);
+  return entry.sets.reduce((sum, set) => sum + setVolume(set), 0);
+};
 export const sessionVolume = (session: Session) => session.exercises.reduce((sum, entry) => sum + exerciseVolume(entry), 0);
 export const totalVolume = (history: Session[]) => history.reduce((sum, session) => sum + sessionVolume(session), 0);
+
+const effortToLegacyRpe = (effort: LoggedSet["effort"]) => {
+  if (!effort) return "";
+  return String(effort.mode === "rir" ? Math.max(1, Math.min(10, 10 - effort.value)) : effort.value);
+};
+
+const trackingModeFor = (exercise: Exercise): TrackingMode => {
+  if (exercise.trackingMode) return exercise.trackingMode;
+  if (exercise.suffix === "seconds") return "duration";
+  if (exercise.incrementKg === 0 && exercise.equipmentTags.includes("bodyweight")) return "bodyweight-reps";
+  return "weight-reps";
+};
+
+const targetRpeFor = (prescription: ExercisePrescription) => {
+  if (prescription.targetEffort.mode === "rpe") return prescription.targetEffort.value;
+  if (prescription.targetEffort.mode === "rir") return Math.max(1, Math.min(10, 10 - prescription.targetEffort.value));
+  return Math.max(1, Math.min(10, 10 - prescription.targetEffort.repsInReserve));
+};
+
+const firstTargetRange = (prescription: ExercisePrescription, exercise: Exercise) => {
+  const target = prescription.setScheme.find((set) => set.targetReps || set.targetSeconds || set.targetDistanceMeters);
+  if (target?.targetReps) return target.targetReps;
+  if (target?.targetSeconds) return target.targetSeconds;
+  if (target?.targetDistanceMeters) return target.targetDistanceMeters;
+  return { min: exercise.min, max: exercise.max };
+};
+
+const loggedSetFromPrescription = (
+  set: SetPrescription,
+  exercise: Exercise,
+  recommendedWeight: number | null,
+  previous?: LoggedSet,
+): LoggedSet => {
+  const base = { id: uid(), kind: set.kind, effort: null, done: false } as const;
+  const mode = trackingModeFor(exercise);
+  if (mode === "duration") {
+    return { ...base, trackingMode: "duration", seconds: previous?.trackingMode === "duration" ? previous.seconds : null };
+  }
+  if (mode === "distance") {
+    return { ...base, trackingMode: "distance", distanceMeters: previous?.trackingMode === "distance" ? previous.distanceMeters : null };
+  }
+  if (mode === "bodyweight-reps") {
+    return { ...base, trackingMode: "bodyweight-reps", reps: null };
+  }
+  if (mode === "assisted-reps") {
+    const assistanceKg = previous?.trackingMode === "assisted-reps" ? previous.assistanceKg : null;
+    return { ...base, trackingMode: "assisted-reps", assistanceKg, reps: null };
+  }
+  if (mode === "weighted-bodyweight-reps") {
+    const addedWeightKg = previous?.trackingMode === "weighted-bodyweight-reps" ? previous.addedWeightKg : recommendedWeight;
+    return { ...base, trackingMode: "weighted-bodyweight-reps", addedWeightKg, reps: null };
+  }
+  const previousWeight = previous?.trackingMode === "weight-reps" ? previous.weightKg : null;
+  return { ...base, trackingMode: "weight-reps", weightKg: recommendedWeight ?? previousWeight, reps: null };
+};
+
+const legacySetFromLogged = (set: LoggedSet): SetEntry => {
+  switch (set.trackingMode) {
+    case "weight-reps":
+      return { id: set.id, kind: set.kind, weight: set.weightKg == null ? "" : String(set.weightKg), reps: set.reps == null ? "" : String(set.reps), rpe: effortToLegacyRpe(set.effort), done: set.done };
+    case "weighted-bodyweight-reps":
+      return { id: set.id, kind: set.kind, weight: set.addedWeightKg == null ? "" : String(set.addedWeightKg), reps: set.reps == null ? "" : String(set.reps), rpe: effortToLegacyRpe(set.effort), done: set.done };
+    case "assisted-reps":
+      return { id: set.id, kind: set.kind, weight: set.assistanceKg == null ? "" : String(set.assistanceKg), reps: set.reps == null ? "" : String(set.reps), rpe: effortToLegacyRpe(set.effort), done: set.done };
+    case "bodyweight-reps":
+      return { id: set.id, kind: set.kind, weight: "", reps: set.reps == null ? "" : String(set.reps), rpe: effortToLegacyRpe(set.effort), done: set.done };
+    case "duration":
+      return { id: set.id, kind: set.kind, weight: "", reps: set.seconds == null ? "" : String(set.seconds), rpe: effortToLegacyRpe(set.effort), done: set.done };
+    case "distance":
+      return { id: set.id, kind: set.kind, weight: "", reps: set.distanceMeters == null ? "" : String(set.distanceMeters), rpe: effortToLegacyRpe(set.effort), done: set.done };
+  }
+};
+
+const legacySetToLogged = (set: SetEntry, mode: TrackingMode): LoggedSet => {
+  const effort = set.rpe && numeric(set.rpe) >= 1 && numeric(set.rpe) <= 10
+    ? { mode: "rpe" as const, value: numeric(set.rpe) }
+    : null;
+  const base = { id: set.id, kind: set.kind, effort, done: set.done };
+  if (mode === "duration") return { ...base, trackingMode: "duration", seconds: set.reps === "" ? null : numeric(set.reps) };
+  if (mode === "distance") return { ...base, trackingMode: "distance", distanceMeters: set.reps === "" ? null : numeric(set.reps) };
+  if (mode === "bodyweight-reps") return { ...base, trackingMode: "bodyweight-reps", reps: set.reps === "" ? null : numeric(set.reps) };
+  if (mode === "assisted-reps") return { ...base, trackingMode: "assisted-reps", assistanceKg: set.weight === "" ? null : numeric(set.weight), reps: set.reps === "" ? null : numeric(set.reps) };
+  if (mode === "weighted-bodyweight-reps") return { ...base, trackingMode: "weighted-bodyweight-reps", addedWeightKg: set.weight === "" ? null : numeric(set.weight), reps: set.reps === "" ? null : numeric(set.reps) };
+  return { ...base, trackingMode: "weight-reps", weightKg: set.weight === "" ? null : numeric(set.weight), reps: set.reps === "" ? null : numeric(set.reps) };
+};
+
+export const makeDraftEntry = (
+  prescription: ExercisePrescription,
+  exercise: Exercise,
+  history: Session[],
+): ExerciseEntry => {
+  const targetRpe = targetRpeFor(prescription);
+  const recommendation = progressionRecommendation(history, exercise, targetRpe);
+  const latest = latestExerciseEntry(history, exercise.id)?.entry;
+  const mode = trackingModeFor(exercise);
+  const previousLogged = latest?.loggedSets?.length
+    ? latest.loggedSets.filter((set) => set.kind !== "warmup")
+    : latest?.sets.filter((set) => set.kind !== "warmup").map((set) => legacySetToLogged(set, mode)) ?? [];
+  const loggedSets = prescription.setScheme.map((set, index) => loggedSetFromPrescription(
+    set,
+    exercise,
+    recommendation.weight,
+    previousLogged[index] ?? previousLogged.at(-1),
+  ));
+  const range = firstTargetRange(prescription, exercise);
+  return {
+    exerciseId: exercise.id,
+    snapshot: {
+      id: exercise.id,
+      name: exercise.name,
+      primary: exercise.primary,
+      secondary: exercise.secondary,
+      equipment: exercise.equipment,
+      suffix: exercise.suffix,
+      incrementKg: exercise.incrementKg,
+      trackingMode: mode,
+      movementPattern: exercise.movementPattern,
+      unilateral: exercise.unilateral,
+    },
+    target: {
+      sets: prescription.setScheme.length,
+      min: range.min,
+      max: range.max,
+      rest: prescription.restSeconds,
+      targetRpe,
+      prescriptionId: prescription.id,
+      targetEffort: prescription.targetEffort,
+      progression: prescription.progression,
+    },
+    sets: loggedSets.map(legacySetFromLogged),
+    loggedSets,
+    note: "",
+  };
+};
 
 const startOfWeek = (date: Date) => {
   const result = new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -151,7 +320,8 @@ export const progressionRecommendation = (
 
   const averageWeight = working.reduce((sum, set) => sum + numeric(set.weight), 0) / working.length;
   const minRepsDone = Math.min(...working.map((set) => numeric(set.reps)));
-  const avgRpe = working.reduce((sum, set) => sum + numeric(set.rpe), 0) / working.length;
+  const rpeValues = working.map((set) => numeric(set.rpe)).filter((value) => value >= 1 && value <= 10);
+  const avgRpe = rpeValues.length ? rpeValues.reduce((sum, value) => sum + value, 0) / rpeValues.length : targetRpe;
   const allAtTop = working.every((set) => numeric(set.reps) >= exercise.max);
   const belowRange = minRepsDone < exercise.min;
 
@@ -168,14 +338,14 @@ export const progressionRecommendation = (
     };
   }
 
-  if (belowRange || avgRpe >= targetRpe + 1.5) {
+  if (belowRange || (rpeValues.length > 0 && avgRpe >= targetRpe + 1.5)) {
     const nextWeight = averageWeight > 0
       ? roundedIncrement(Math.max(0, averageWeight - exercise.incrementKg), exercise.incrementKg)
       : null;
     return {
       exerciseId: exercise.id,
       headline: nextWeight == null ? "Giảm độ khó" : `Giảm về khoảng ${nextWeight} kg`,
-      explanation: `Buổi trước chưa đạt đáy rep range hoặc RPE ${avgRpe.toFixed(1)} cao hơn mục tiêu. Giảm một bước để giữ kỹ thuật.`,
+      explanation: `Buổi trước chưa đạt đáy rep range${rpeValues.length ? ` hoặc RPE ${avgRpe.toFixed(1)} cao hơn mục tiêu` : ""}. Giảm một bước để giữ kỹ thuật.`,
       weight: nextWeight,
       minReps: exercise.min,
       maxReps: exercise.max,
@@ -186,7 +356,7 @@ export const progressionRecommendation = (
   return {
     exerciseId: exercise.id,
     headline: averageWeight > 0 ? `Giữ khoảng ${roundedIncrement(averageWeight, exercise.incrementKg)} kg` : "Giữ độ khó hiện tại",
-    explanation: `Tiếp tục tích lũy reps trong khoảng ${exercise.min}–${exercise.max}. Khi toàn bộ working set đạt trần rep với RPE phù hợp, app sẽ đề xuất tăng tải.`,
+    explanation: `Tiếp tục tích lũy reps trong khoảng ${exercise.min}–${exercise.max}. Khi toàn bộ working set đạt trần rep với effort phù hợp, app sẽ đề xuất tăng tải.`,
     weight: averageWeight > 0 ? roundedIncrement(averageWeight, exercise.incrementKg) : null,
     minReps: exercise.min,
     maxReps: exercise.max,
@@ -336,7 +506,7 @@ export const makeRecap = (session: Session, historyBefore: Session[]): WorkoutRe
     strongestExercise: strongest?.snapshot.name,
     nextAction: prs.length
       ? `Bạn có ${prs.length} PR mới. Buổi tới hãy giữ kỹ thuật trước khi tiếp tục tăng tải.`
-      : "Buổi tới app sẽ dựa trên reps và RPE hôm nay để đề xuất mức tải.",
+      : "Buổi tới app sẽ dựa trên reps và effort hôm nay để đề xuất mức tải.",
   };
 };
 
