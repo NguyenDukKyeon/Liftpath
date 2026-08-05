@@ -39,6 +39,28 @@ const prepareMigrationInput = (value: Record<string, unknown>) => ({
   draft: value.draft == null ? value.draft : normalizeLegacyRecordDay(value.draft),
 });
 
+const recommendedDaysFor = (availableDays: UserProfile["availableDays"]) => {
+  if (availableDays >= 6) return [1, 2, 3, 4, 5, 6];
+  if (availableDays >= 4) return [1, 2, 4, 5];
+  if (availableDays === 2) return [1, 4];
+  return [1, 3, 5];
+};
+
+const normalizeCoachProfile = (profile: UserProfile): UserProfile => ({
+  ...profile,
+  preferredDays: Array.isArray(profile.preferredDays) && profile.preferredDays.length
+    ? profile.preferredDays.filter((day) => Number.isInteger(day) && day >= 0 && day <= 6)
+    : recommendedDaysFor(profile.availableDays),
+  restrictions: Array.isArray(profile.restrictions) ? profile.restrictions : [],
+  profileNotes: (profile.profileNotes ?? profile.limitations ?? "").slice(0, 500),
+  effortLanguage: profile.effortLanguage === "rpe" ? "rpe" : "simple-rir",
+  movementFamiliarity: ["new", "some", "comfortable"].includes(profile.movementFamiliarity ?? "")
+    ? profile.movementFamiliarity
+    : "new",
+  consistencyWeeks: Math.max(0, Math.round(Number(profile.consistencyWeeks) || 0)),
+  recentLoads: isObject(profile.recentLoads) ? profile.recentLoads : {},
+});
+
 export const defaultProfile = (): UserProfile => ({
   onboardingComplete: false,
   goal: "hypertrophy",
@@ -119,6 +141,7 @@ export const normalizeState = (value: unknown): AppState => {
   return {
     ...state,
     schemaVersion: CURRENT_SCHEMA_VERSION,
+    profile: normalizeCoachProfile(state.profile),
     customPrograms: state.customPrograms.map(runtimeProgramView),
     migrationWarnings: warnings,
   };
