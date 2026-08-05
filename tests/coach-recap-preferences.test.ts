@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { defaultState, normalizeState } from "../src/domain/storage.js";
+import type { ReadinessInput } from "../src/features/coach/contracts.js";
 import { applyPreferenceSignal } from "../src/features/coach/preferences.js";
 import { buildWorkoutRecap, isWorkoutCoachRecap } from "../src/features/coach/recap.js";
 import { finishGuidedWorkoutState } from "../src/features/workout/completion.js";
@@ -165,14 +166,17 @@ test("low recovery feedback appears in attention instead of progression praise",
 
 test("completion persists an immutable recap and readiness evidence snapshot", () => {
   const base = defaultState();
-  const readiness = {
+  const readiness: {
+    input: ReadinessInput;
+    appliedReasonCodes: Array<"no-adjustment-needed">;
+  } = {
     input: {
-      energy: "normal" as const,
-      soreness: "manageable" as const,
+      energy: "normal",
+      soreness: "manageable",
       pain: null,
       availableMinutes: 60,
     },
-    appliedReasonCodes: ["no-adjustment-needed" as const],
+    appliedReasonCodes: ["no-adjustment-needed"],
   };
   const draft: Draft & { readiness: typeof readiness } = {
     id: "draft-current",
