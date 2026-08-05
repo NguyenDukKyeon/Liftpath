@@ -2,17 +2,18 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { getProgram } from "../../src/data.js";
-import { defaultState } from "../../src/domain/storage.js";
 import { ReadinessCheck } from "../../src/features/workout/ReadinessCheck.js";
 import { prepareWorkoutFromState } from "../../src/features/workout/preparation.js";
+import { shortSessionUserState } from "../helpers/app-fixtures.js";
 
 describe("ReadinessCheck", () => {
   it("shows low-energy short-session changes and confirms the displayed input", async () => {
-    const state = defaultState();
-    state.profile.onboardingComplete = true;
+    const state = shortSessionUserState();
     const program = getProgram(state.settings.programId, state.customPrograms);
     const prepared = prepareWorkoutFromState(state, program.workouts[0].id);
     expect(prepared).not.toBeNull();
+    expect(prepared!.prescriptions.slice(0, 2).every((item) => item.priority === "primary")).toBe(true);
+    expect(prepared!.prescriptions.some((item) => item.optional || item.priority === "accessory")).toBe(true);
 
     const confirm = vi.fn(() => null);
     const user = userEvent.setup();
