@@ -11,6 +11,7 @@ import type {
 import { applyPreferenceSignal, type PreferenceSignal } from "./features/coach/preferences.js";
 import { findSafeSubstitution } from "./features/coach/substitution.js";
 import type { WarmupSet } from "./features/coach/warmup.js";
+import { finishGuidedWorkoutState } from "./features/workout/completion.js";
 import {
   createDraftAfterReadiness,
   prepareWorkoutFromState,
@@ -25,6 +26,7 @@ import type {
   ExercisePrescription,
   LoggedSet,
   ProgramId,
+  SessionFeedback,
   SetEntry,
   SetPrescription,
   TrackingMode,
@@ -308,6 +310,11 @@ export function useGuidedAppState() {
     });
   }, [base]);
 
+  const finishWorkout = useCallback((feedback?: SessionFeedback) => {
+    const next = finishGuidedWorkoutState(base.state, feedback);
+    if (next) base.replaceState(next);
+  }, [base]);
+
   return {
     ...base,
     completeOnboarding,
@@ -324,5 +331,6 @@ export function useGuidedAppState() {
     replaceExerciseInDraft,
     swapExercise: (exerciseIndex: number, exerciseId: string) => replaceExerciseInDraft(exerciseIndex, exerciseId),
     saveExercisePreference,
+    finishWorkout,
   };
 }
