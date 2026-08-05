@@ -2,9 +2,9 @@ import { useEffect, type ReactNode } from "react";
 import { X } from "lucide-react";
 import type { ThemePreference } from "../types.js";
 
-export function Progress({ value }: { value: number }) {
+export function Progress({ value, label = "Tiến độ hoàn thành" }: { value: number; label?: string }) {
   const percent = Math.max(0, Math.min(100, Math.round(value * 100)));
-  return <div className="progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}><i style={{ width: `${percent}%` }} /></div>;
+  return <div className="progress" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}><i style={{ width: `${percent}%` }} /></div>;
 }
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
