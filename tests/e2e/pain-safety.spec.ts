@@ -6,6 +6,7 @@ test("sharp knee pain blocks the unsafe session and avoids diagnosis claims", as
   await seedState(page, returningUserState());
   await page.goto("/");
   await page.getByRole("button", { name: /bắt đầu tập/i }).first().click();
+  await page.getByRole("button", { name: /tôi cần điều chỉnh/i }).click();
 
   await page.getByRole("button", { name: /có vùng đau cần tránh/i }).click();
   await page.getByLabel("Vùng đau").selectOption("knee");
