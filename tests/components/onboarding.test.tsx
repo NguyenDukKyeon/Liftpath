@@ -17,13 +17,15 @@ describe("OnboardingFlow", () => {
     expect(screen.getByRole("heading", { name: /hiệu chỉnh mức hướng dẫn/i })).toBeInTheDocument();
 
     const advanced = screen.getByText(/tùy chỉnh nâng cao/i);
+    const restrictionsHeading = screen.getByRole("heading", { name: /^hạn chế chuyển động$/i });
+    const recentLoadsHeading = screen.getByRole("heading", { name: /^mức tạ gần đây/i });
     expect(advanced).toBeInTheDocument();
-    expect(screen.getByText(/hạn chế chuyển động/i)).not.toBeVisible();
-    expect(screen.getByText(/mức tạ gần đây/i)).not.toBeVisible();
+    expect(restrictionsHeading).not.toBeVisible();
+    expect(recentLoadsHeading).not.toBeVisible();
 
     await user.click(advanced);
-    expect(screen.getByText(/hạn chế chuyển động/i)).toBeVisible();
-    expect(screen.getByText(/mức tạ gần đây/i)).toBeVisible();
+    expect(restrictionsHeading).toBeVisible();
+    expect(recentLoadsHeading).toBeVisible();
 
     await user.click(screen.getByRole("button", { name: /tiếp tục/i }));
 
