@@ -24,10 +24,11 @@ export function useGuidedAppState() {
 
   const completeOnboarding = useCallback((
     profile: UserProfile,
-    recommendation: PlanRecommendation,
+    recommendation?: PlanRecommendation,
   ) => {
     const completedProfile = { ...profile, onboardingComplete: true };
     base.completeOnboarding(completedProfile);
+    if (!recommendation) return;
 
     const isVariant = recommendation.substitutions.length > 0
       || recommendation.removedPrescriptionIds.length > 0
