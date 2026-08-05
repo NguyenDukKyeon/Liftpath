@@ -2,12 +2,20 @@
   --muted: #596359;
 }
 
+.eyebrow,
+.guided-choice-card.selected small,
+.readiness-choice-grid button.selected small,
+.readiness-summary-grid small,
+.readiness-preview .eyebrow {
+  color: var(--accent-strong);
+}
+
 .guided-choice-card.selected small,
 .readiness-choice-grid button.selected small,
 .readiness-summary-grid small {
   color: var(--ink-2);
 }
 
-.readiness-preview .eyebrow {
-  color: var(--accent-strong);
+.guided-workout-content {
+  padding-bottom: max(58px, calc(env(safe-area-inset-bottom) + 16px));
 }
