@@ -1,0 +1,12 @@
+html:not([data-theme="dark"]) {
+  --muted: #657065;
+}
+
+html:not([data-theme="dark"]) .alert-card p {
+  opacity: 1;
+}
+
+html:not([data-theme="dark"]) .frequency-switch button small {
+  background: var(--accent-strong);
+  color: var(--surface);
+}
