@@ -7,6 +7,7 @@ export type ExerciseType = "upper" | "lower" | "delt" | "arms" | "core";
 export type SetKind = "warmup" | "working" | "drop";
 export type TrainingGoal = "hypertrophy" | "strength" | "general" | "fat-loss";
 export type ExperienceLevel = "beginner" | "intermediate" | "advanced";
+export type AvailableTrainingDays = 2 | 3 | 4 | 5 | 6;
 export type EquipmentId =
   | "barbell"
   | "dumbbell"
@@ -27,6 +28,108 @@ export type MuscleGroup =
   | "Bắp chân"
   | "Core";
 
+export type TrackingMode =
+  | "weight-reps"
+  | "bodyweight-reps"
+  | "assisted-reps"
+  | "weighted-bodyweight-reps"
+  | "duration"
+  | "distance";
+
+export type MovementPattern =
+  | "squat"
+  | "hinge"
+  | "horizontal-push"
+  | "vertical-push"
+  | "horizontal-pull"
+  | "vertical-pull"
+  | "lunge"
+  | "isolation"
+  | "carry"
+  | "core";
+
+export type EffortTarget =
+  | { mode: "rir"; value: number }
+  | { mode: "rpe"; value: number }
+  | { mode: "simple"; repsInReserve: number };
+
+export type LoggedEffort =
+  | { mode: "rir"; value: number }
+  | { mode: "rpe"; value: number }
+  | null;
+
+export type ProgressionStrategy =
+  | { type: "double-progression"; incrementKg: number }
+  | { type: "linear-load"; incrementKg: number }
+  | { type: "rep-progression"; repStep: number }
+  | { type: "duration-progression"; secondsStep: number }
+  | { type: "manual" };
+
+export type SetPrescription = {
+  kind: SetKind;
+  targetReps?: { min: number; max: number };
+  targetSeconds?: { min: number; max: number };
+  targetDistanceMeters?: { min: number; max: number };
+};
+
+export type ExercisePrescription = {
+  id: string;
+  exerciseId: ExerciseId;
+  order: number;
+  setScheme: SetPrescription[];
+  restSeconds: number;
+  targetEffort: EffortTarget;
+  progression: ProgressionStrategy;
+  coachingCue?: string;
+  optional: boolean;
+  priority: "primary" | "secondary" | "accessory";
+  supersetGroup?: string;
+};
+
+type LoggedSetBase = {
+  id: string;
+  kind: SetKind;
+  effort: LoggedEffort;
+  done: boolean;
+};
+
+export type LoggedSet =
+  | (LoggedSetBase & {
+      trackingMode: "weight-reps";
+      weightKg: number | null;
+      reps: number | null;
+    })
+  | (LoggedSetBase & {
+      trackingMode: "bodyweight-reps";
+      reps: number | null;
+    })
+  | (LoggedSetBase & {
+      trackingMode: "assisted-reps";
+      assistanceKg: number | null;
+      reps: number | null;
+    })
+  | (LoggedSetBase & {
+      trackingMode: "weighted-bodyweight-reps";
+      addedWeightKg: number | null;
+      reps: number | null;
+    })
+  | (LoggedSetBase & {
+      trackingMode: "duration";
+      seconds: number | null;
+    })
+  | (LoggedSetBase & {
+      trackingMode: "distance";
+      distanceMeters: number | null;
+      durationSeconds?: number | null;
+    });
+
+export type MigrationWarning = {
+  code: string;
+  path: string;
+  message: string;
+  recordId?: string;
+};
+
 export type Exercise = {
   id: ExerciseId;
   name: string;
@@ -43,6 +146,10 @@ export type Exercise = {
   type: ExerciseType;
   suffix: "reps" | "seconds" | "each side" | "each leg" | "total reps";
   incrementKg: number;
+  trackingMode?: TrackingMode;
+  movementPattern?: MovementPattern;
+  unilateral?: boolean;
+  contraindicationTags?: string[];
   custom?: boolean;
 };
 
@@ -51,7 +158,7 @@ export type WorkoutDay = {
   name: string;
   shortName: string;
   focus: string;
-  exercises: ExerciseId[];
+  exercises: ExerciseId[] | ExercisePrescription[];
 };
 
 export type TrainingProgram = {
@@ -77,6 +184,9 @@ export type ExerciseSnapshot = {
   equipment: string;
   suffix: Exercise["suffix"];
   incrementKg: number;
+  trackingMode?: TrackingMode;
+  movementPattern?: MovementPattern;
+  unilateral?: boolean;
 };
 
 export type TargetSnapshot = {
@@ -85,6 +195,9 @@ export type TargetSnapshot = {
   max: number;
   rest: number;
   targetRpe: number;
+  prescriptionId?: string;
+  targetEffort?: EffortTarget;
+  progression?: ProgressionStrategy;
 };
 
 export type SetEntry = {
@@ -101,6 +214,7 @@ export type ExerciseEntry = {
   snapshot: ExerciseSnapshot;
   target: TargetSnapshot;
   sets: SetEntry[];
+  loggedSets?: LoggedSet[];
   note: string;
   replacedExerciseId?: ExerciseId;
 };
@@ -165,7 +279,7 @@ export type UserProfile = {
   onboardingComplete: boolean;
   goal: TrainingGoal;
   experience: ExperienceLevel;
-  availableDays: 3 | 4 | 6;
+  availableDays: AvailableTrainingDays;
   sessionMinutes: 40 | 60 | 75 | 90;
   equipment: EquipmentId[];
   priorityMuscles: MuscleGroup[];
@@ -214,7 +328,7 @@ export type SyncConfig = {
 };
 
 export type AppState = {
-  schemaVersion: 3;
+  schemaVersion: 3 | 4;
   updatedAt: string;
   settings: Settings;
   profile: UserProfile;
@@ -226,6 +340,7 @@ export type AppState = {
   customPrograms: TrainingProgram[];
   lastRecap: WorkoutRecap | null;
   sync: SyncConfig;
+  migrationWarnings?: MigrationWarning[];
 };
 
 export type ProgramSwitchOptions = {
@@ -258,7 +373,7 @@ export type WeeklyReview = {
 
 export type SyncEnvelope = {
   app: "liftpath";
-  schemaVersion: 3;
+  schemaVersion: 3 | 4;
   updatedAt: string;
   state: AppState;
 };
