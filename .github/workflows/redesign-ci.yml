@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - agent/liftpath-4-1-ui-ux-redesign
+      - agent/liftpath-4-2-supporting-screens-redesign
+  workflow_dispatch:
 
 concurrency:
   group: redesign-${{ github.ref }}
@@ -21,7 +23,7 @@ jobs:
           node-version: 22
           cache: npm
       - name: Verify diff integrity
-        run: git diff --check 4f89213a41a6ffb6a47673ba8f86d97aa3e58631...HEAD
+        run: git diff --check "$(git merge-base origin/main HEAD)"...HEAD
       - run: npm ci
       - run: npm run audit:production
       - run: npm run check:fast
