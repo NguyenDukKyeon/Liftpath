@@ -16,6 +16,7 @@ import "./features/core-funnel/focused-recap.css";
 import "./features/core-funnel/focused-accessibility-fix.css";
 import "./features/core-funnel/focused-visual-lock.css";
 import "./features/supporting-screens/athletic-supporting.css";
+import "./features/supporting-screens/athletic-supporting-accessibility.css";
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
