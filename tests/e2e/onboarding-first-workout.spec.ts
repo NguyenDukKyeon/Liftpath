@@ -16,8 +16,8 @@ test("beginner completes onboarding, logs a set with blank effort, and sees reca
 
   await expect(page.getByRole("heading", { name: /buổi tập của bạn/i })).toBeVisible();
   await page.getByRole("button", { name: /bắt đầu tập/i }).first().click();
-  await expect(page.getByRole("heading", { name: /hôm nay cơ thể thế nào/i })).toBeVisible();
-  await page.getByRole("button", { name: /xác nhận và bắt đầu/i }).click();
+  await expect(page.getByRole("heading", { name: /sẵn sàng tập hôm nay/i })).toBeVisible();
+  await page.getByRole("button", { name: /tập như kế hoạch/i }).click();
 
   await expect(page.locator(".workout-title strong")).toContainText(/0\/\d+ hiệp hoàn thành/);
   const load = page.getByLabel(/^(Kg|Hỗ trợ|\+Kg) hiệp 1$/).first();

@@ -1,11 +1,12 @@
-import { ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
 import type { ExerciseEntry } from "../../types.js";
 import type { CoachDecision } from "../coach/contracts.js";
 import type { ProgressionResult } from "../coach/progression.js";
 
 const confidenceLabel = {
   high: "Đề xuất chắc chắn",
-  medium: "Đề xuất",
+  medium: "Coach gợi ý",
   low: "Cần thêm dữ liệu",
 } as const;
 
@@ -20,27 +21,30 @@ const actionLabel = (decision: CoachDecision<ProgressionResult>) => {
   return "Giữ mục tiêu hiện tại";
 };
 
-export function ExerciseCoachCard({
-  entry,
-  decision,
-}: {
+export function ExerciseCoachCard({ entry, decision }: {
   entry: ExerciseEntry;
   decision: CoachDecision<ProgressionResult>;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const Icon = decision.value.action === "manual-review"
     ? TriangleAlert
     : decision.confidence === "high"
       ? ShieldCheck
       : Sparkles;
+
   return (
-    <section className={`exercise-coach-card confidence-${decision.confidence}`} aria-label="Hướng dẫn của LiftPath">
-      <div className="coach-card-icon"><Icon size={19} /></div>
-      <div>
+    <section className={`exercise-coach-card focused-coach-summary confidence-${decision.confidence}`} aria-label="Hướng dẫn của LiftPath">
+      <div className="coach-card-icon"><Icon size={17} /></div>
+      <div className="coach-card-main">
         <span>{confidenceLabel[decision.confidence]}</span>
         <strong>{actionLabel(decision)}</strong>
-        <p>{decision.explanation}</p>
         <small>{entry.target.min}–{entry.target.max} {entry.snapshot.suffix} · nghỉ {entry.target.rest} giây</small>
+        <p className="coach-card-reason" hidden={!expanded}>{decision.explanation}</p>
       </div>
+      <button type="button" className="coach-reason-toggle" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
+        {expanded ? "Ẩn lý do" : "Xem lý do"}
+        <ChevronDown size={15} className={expanded ? "rotated" : ""} />
+      </button>
     </section>
   );
 }

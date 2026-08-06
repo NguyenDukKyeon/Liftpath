@@ -1,0 +1,146 @@
+.guided-recap.focused-recap {
+  display: grid;
+  gap: 11px;
+  color: var(--ink);
+}
+
+.focused-recap .focused-recap-hero {
+  display: grid;
+  justify-items: center;
+  padding: 18px 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 0, rgba(184, 247, 11, .14), transparent 58%),
+    #0b0f0c;
+  text-align: center;
+}
+.focused-recap .recap-success-mark {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 11px;
+  place-items: center;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: rgba(184, 247, 11, .08);
+  color: var(--accent);
+  box-shadow: 0 0 30px rgba(184, 247, 11, .12);
+}
+.focused-recap .focused-recap-hero h2 {
+  max-width: 560px;
+  margin-top: 5px;
+  font-size: clamp(21px, 6vw, 29px);
+  line-height: 1.08;
+}
+.focused-recap .focused-recap-hero p {
+  max-width: 560px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.focused-recap .recap-next-priority {
+  padding: 15px;
+  border: 1px solid #46591d;
+  border-radius: 13px;
+  background: linear-gradient(135deg, rgba(184, 247, 11, .14), rgba(184, 247, 11, .035));
+}
+.focused-recap .recap-next-priority .recap-section-heading { color: var(--accent); }
+.focused-recap .recap-next-priority h2 {
+  margin-top: 10px;
+  color: var(--ink);
+  font-size: 19px;
+  line-height: 1.12;
+}
+.focused-recap .recap-next-priority p {
+  margin-top: 6px;
+  color: var(--ink-2);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.focused-recap .recap-coaching-list {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: #0b0f0c;
+}
+.focused-recap .focused-recap-section {
+  padding: 14px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+.focused-recap .focused-recap-section:last-child { border-bottom: 0; }
+.focused-recap .recap-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.focused-recap .recap-section-heading h3 { font-size: 12px; }
+.focused-recap .tone-success .recap-section-heading { color: var(--accent); }
+.focused-recap .tone-warning .recap-section-heading { color: var(--warning); }
+.focused-recap .tone-coach .recap-section-heading { color: #7fc7ff; }
+.focused-recap .guided-recap-list {
+  display: grid;
+  gap: 7px;
+  margin-top: 9px;
+}
+.focused-recap .guided-recap-list article {
+  padding: 0 0 0 27px;
+  border: 0;
+  background: transparent;
+}
+.focused-recap .guided-recap-list strong { color: var(--ink); font-size: 11px; }
+.focused-recap .guided-recap-list p,
+.focused-recap .recap-empty {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.focused-recap .focused-recap-prs {
+  padding: 14px;
+  border: 1px solid #5d4814;
+  border-radius: 13px;
+  background: linear-gradient(135deg, rgba(255, 196, 79, .12), rgba(255, 196, 79, .025));
+}
+.focused-recap .focused-recap-prs .recap-section-heading { color: var(--warning); }
+.focused-recap .recap-pr-list { margin-top: 9px; }
+.focused-recap .recap-pr-list > div {
+  border-color: rgba(255, 196, 79, .18);
+  background: rgba(0, 0, 0, .16);
+}
+
+.focused-recap .focused-recap-details {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #0b0f0c;
+}
+.focused-recap .focused-recap-details summary {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 13px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+.focused-recap .focused-recap-details summary::-webkit-details-marker { display: none; }
+.focused-recap .focused-recap-details summary svg { transition: transform .18s ease; }
+.focused-recap .focused-recap-details[open] summary svg { transform: rotate(180deg); }
+.focused-recap .focused-recap-details .recap-metric-grid {
+  padding: 0 10px 10px;
+}
+.focused-recap .focused-recap-details .recap-metric-grid span {
+  border-color: var(--line);
+  background: #080b09;
+}

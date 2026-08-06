@@ -4,10 +4,12 @@ import {
   ArrowRight,
   CalendarDays,
   Check,
+  ChevronDown,
   Clock3,
   Dumbbell,
   ShieldCheck,
   Sparkles,
+  SlidersHorizontal,
 } from "lucide-react";
 import { BUILT_IN_EXERCISES, TRAINING_DAYS } from "../../data.js";
 import { buildPlanRecommendation } from "../coach/plan-builder.js";
@@ -110,14 +112,14 @@ export function OnboardingFlow({
   };
 
   return (
-    <main className="guided-onboarding-shell">
+    <main className="guided-onboarding-shell focused-coach-surface" data-ui="focused-coach">
       <section className="guided-onboarding-card">
         <header className="guided-onboarding-header">
           <span className="brand-mark"><Dumbbell size={21} /></span>
           <div>
-            <span className="eyebrow">LIFTPATH GUIDED COACH</span>
-            <h1>Tạo lộ trình có lý do rõ ràng</h1>
-            <p>LiftPath dùng lịch, thiết bị, kinh nghiệm và hạn chế bạn khai báo để tạo một điểm khởi đầu an toàn hơn.</p>
+            <span className="eyebrow">LIFTPATH · FOCUSED COACH</span>
+            <h1>Thiết lập kế hoạch tập thông minh</h1>
+            <p>Chọn mục tiêu, lịch và thiết bị. LiftPath sẽ tạo một điểm khởi đầu an toàn, rõ lý do và có thể điều chỉnh.</p>
           </div>
         </header>
 
@@ -131,8 +133,8 @@ export function OnboardingFlow({
 
         <div className="guided-step" key={state.step}>
           {state.step === "goal" && (
-            <StepSection eyebrow="BƯỚC 1" title="Bạn muốn ưu tiên điều gì?" description="Chọn một mục tiêu chính. LiftPath vẫn giữ sức khỏe và tính duy trì làm giới hạn.">
-              <div className="guided-choice-grid three">
+            <StepSection eyebrow="BƯỚC 1 / 4" title="Bạn muốn ưu tiên điều gì?" description="Chọn một mục tiêu chính. LiftPath vẫn giữ sức khỏe và khả năng duy trì làm giới hạn.">
+              <div className="guided-choice-grid three goal-list">
                 {([
                   ["hypertrophy", "Tăng cơ", "Tích lũy khối lượng với rep range kiểm soát."],
                   ["strength", "Tăng sức mạnh", "Ưu tiên bài chính, nghỉ lâu và tăng tải nhỏ."],
@@ -143,13 +145,13 @@ export function OnboardingFlow({
               </div>
               <div className="guided-context-note">
                 <ShieldCheck size={18} />
-                <p>Giảm mỡ chủ yếu phụ thuộc cân bằng năng lượng. Giáo án vẫn nên ưu tiên giữ cơ, kỹ thuật và khả năng hồi phục.</p>
+                <p>Giảm mỡ chủ yếu phụ thuộc cân bằng năng lượng. Giáo án vẫn ưu tiên giữ cơ, kỹ thuật và khả năng hồi phục.</p>
               </div>
             </StepSection>
           )}
 
           {state.step === "schedule" && (
-            <StepSection eyebrow="BƯỚC 2" title="Lịch nào bạn thực sự duy trì được?" description="Không chọn lịch lý tưởng. Chọn số buổi và thiết bị bạn có trong phần lớn tuần.">
+            <StepSection eyebrow="BƯỚC 2 / 4" title="Lịch nào bạn thực sự duy trì được?" description="Không chọn lịch lý tưởng. Chọn số buổi và thiết bị bạn có trong phần lớn tuần.">
               <FieldGroup icon={<CalendarDays size={18} />} title="Số buổi mỗi tuần">
                 <div className="guided-choice-grid five compact">
                   {([2, 3, 4, 5, 6] as AvailableTrainingDays[]).map((value) => (
@@ -189,7 +191,7 @@ export function OnboardingFlow({
           )}
 
           {state.step === "experience" && (
-            <StepSection eyebrow="BƯỚC 3" title="Hiệu chỉnh mức hướng dẫn" description="Không cần biết mức tạ chính xác. Các câu trả lời này chỉ điều chỉnh độ phức tạp và ngôn ngữ effort.">
+            <StepSection eyebrow="BƯỚC 3 / 4" title="Hiệu chỉnh mức hướng dẫn" description="Ba lựa chọn chính giúp coach dùng đúng độ chi tiết. Các dữ liệu còn lại hoàn toàn tùy chọn.">
               <FieldGroup title="Kinh nghiệm tập">
                 <div className="guided-choice-grid three">
                   {([
@@ -213,49 +215,60 @@ export function OnboardingFlow({
                   <input type="number" min={0} max={520} value={state.profile.consistencyWeeks ?? 0} onChange={(event) => patch({ consistencyWeeks: Math.max(0, Number(event.target.value) || 0) })} />
                 </FieldGroup>
               </div>
-              <FieldGroup title="Cách mô tả effort">
+              <FieldGroup title="Cách mô tả gắng sức">
                 <div className="guided-choice-grid two compact">
                   <button type="button" className={(state.profile.effortLanguage ?? "simple-rir") === "simple-rir" ? "selected" : ""} onClick={() => patch({ effortLanguage: "simple-rir" })}>Còn bao nhiêu reps</button>
                   <button type="button" className={state.profile.effortLanguage === "rpe" ? "selected" : ""} onClick={() => patch({ effortLanguage: "rpe" })}>RPE 1–10</button>
                 </div>
               </FieldGroup>
-              <FieldGroup title="Hạn chế chuyển động">
-                <label className="guided-toggle-row">
-                  <input type="checkbox" checked={restrictionEnabled} onChange={(event) => {
-                    setRestrictionEnabled(event.target.checked);
-                    if (!event.target.checked) patch({ restrictions: [] });
-                  }} />
-                  <span>Tôi có vùng cần tránh hoặc cần thận trọng</span>
-                </label>
-                {restrictionEnabled && (
-                  <div className="guided-chip-grid restriction-grid">
-                    {restrictionAreas.map((item) => (
-                      <button key={item.id} type="button" className={(state.profile.restrictions ?? []).some((restriction) => restriction.bodyArea === item.id) ? "selected" : ""} onClick={() => toggleRestriction(item.id, item.patterns)}>{item.label}</button>
-                    ))}
-                  </div>
-                )}
-                <textarea maxLength={500} value={state.profile.profileNotes ?? ""} placeholder="Ghi chú tùy chọn. Đây không phải nơi chẩn đoán chấn thương." onChange={(event) => patch({ profileNotes: event.target.value })} />
-              </FieldGroup>
-              <FieldGroup title="Mức tạ gần đây — tùy chọn">
-                <div className="guided-two-column">
-                  {(["db_bench", "back_squat"] as const).map((exerciseId) => (
-                    <label key={exerciseId} className="guided-load-field">
-                      <span>{BUILT_IN_EXERCISES[exerciseId].name}</span>
-                      <input type="number" min={0} step="0.5" placeholder="kg" value={state.profile.recentLoads?.[exerciseId] ?? ""} onChange={(event) => patch({ recentLoads: { ...(state.profile.recentLoads ?? {}), [exerciseId]: event.target.value === "" ? undefined : Number(event.target.value) } })} />
+
+              <details className="guided-advanced">
+                <summary><span><SlidersHorizontal size={18} /><strong>Tùy chỉnh nâng cao</strong><small>Hạn chế chuyển động, ghi chú và mức tạ gần đây</small></span><ChevronDown size={18} /></summary>
+                <div className="guided-advanced-content">
+                  <FieldGroup title="Hạn chế chuyển động">
+                    <label className="guided-toggle-row">
+                      <input type="checkbox" checked={restrictionEnabled} onChange={(event) => {
+                        setRestrictionEnabled(event.target.checked);
+                        if (!event.target.checked) patch({ restrictions: [] });
+                      }} />
+                      <span>Tôi có vùng cần tránh hoặc cần thận trọng</span>
                     </label>
-                  ))}
+                    {restrictionEnabled && (
+                      <div className="guided-chip-grid restriction-grid">
+                        {restrictionAreas.map((item) => (
+                          <button key={item.id} type="button" className={(state.profile.restrictions ?? []).some((restriction) => restriction.bodyArea === item.id) ? "selected" : ""} onClick={() => toggleRestriction(item.id, item.patterns)}>{item.label}</button>
+                        ))}
+                      </div>
+                    )}
+                    <textarea maxLength={500} value={state.profile.profileNotes ?? ""} placeholder="Ghi chú tùy chọn. Đây không phải nơi chẩn đoán chấn thương." onChange={(event) => patch({ profileNotes: event.target.value })} />
+                  </FieldGroup>
+                  <FieldGroup title="Mức tạ gần đây — tùy chọn">
+                    <div className="guided-two-column">
+                      {(["db_bench", "back_squat"] as const).map((exerciseId) => (
+                        <label key={exerciseId} className="guided-load-field">
+                          <span>{BUILT_IN_EXERCISES[exerciseId].name}</span>
+                          <input type="number" min={0} step="0.5" placeholder="kg" value={state.profile.recentLoads?.[exerciseId] ?? ""} onChange={(event) => patch({ recentLoads: { ...(state.profile.recentLoads ?? {}), [exerciseId]: event.target.value === "" ? undefined : Number(event.target.value) } })} />
+                        </label>
+                      ))}
+                    </div>
+                  </FieldGroup>
                 </div>
-              </FieldGroup>
+              </details>
             </StepSection>
           )}
 
           {state.step === "preview" && (
-            <StepSection eyebrow="BƯỚC 4" title="Lộ trình được đề xuất" description="Đây là phương án chính xác sẽ được lưu khi bạn xác nhận.">
+            <StepSection eyebrow="BƯỚC 4 / 4" title="Lộ trình được đề xuất" description="Đây là phương án chính xác sẽ được lưu khi bạn xác nhận.">
               <article className="guided-plan-preview">
-                <div className="guided-plan-heading">
-                  <span className="guided-plan-icon"><Sparkles size={22} /></span>
-                  <div><small>PHƯƠNG ÁN ĐƯỢC CHỌN</small><h2>{recommendation.value.program.name}</h2><p>{recommendation.explanation}</p></div>
-                  <strong>{recommendation.value.estimatedDurationMinutes} phút</strong>
+                <div className="guided-plan-hero">
+                  <div className="guided-plan-heading">
+                    <span className="guided-plan-icon"><Sparkles size={22} /></span>
+                    <div><small>PHƯƠNG ÁN ĐƯỢC CHỌN</small><h2>{recommendation.value.program.name}</h2><p>{recommendation.explanation}</p></div>
+                    <strong>{recommendation.value.estimatedDurationMinutes} phút</strong>
+                  </div>
+                  <div className="guided-athlete-media" aria-hidden="true">
+                    <img src="/images/liftpath-athlete-preview.png" alt="" data-testid="athlete-plan-preview" />
+                  </div>
                 </div>
                 <div className="guided-plan-metrics">
                   <span><strong>{recommendation.value.program.daysPerWeek}</strong><small>buổi/tuần</small></span>

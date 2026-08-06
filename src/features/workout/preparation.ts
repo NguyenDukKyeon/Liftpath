@@ -38,6 +38,7 @@ export type PreparedWorkout = {
   prescriptions: ExercisePrescription[];
   replacementOrigins: Record<string, ExerciseId>;
   preparedAt: string;
+  estimatedDurationMinutes: number;
 };
 
 export type ReadinessSnapshot = {
@@ -128,6 +129,7 @@ export const prepareWorkoutFromState = (
         : []),
     ),
     preparedAt: new Date().toISOString(),
+    estimatedDurationMinutes: state.profile.sessionMinutes,
   };
 };
 

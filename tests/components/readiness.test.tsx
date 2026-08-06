@@ -6,19 +6,47 @@ import { ReadinessCheck } from "../../src/features/workout/ReadinessCheck.js";
 import { prepareWorkoutFromState } from "../../src/features/workout/preparation.js";
 import { shortSessionUserState } from "../helpers/app-fixtures.js";
 
+const preparedFixture = () => {
+  const state = shortSessionUserState();
+  const program = getProgram(state.settings.programId, state.customPrograms);
+  const prepared = prepareWorkoutFromState(state, program.workouts[0].id);
+  expect(prepared).not.toBeNull();
+  return { state, prepared: prepared! };
+};
+
 describe("ReadinessCheck", () => {
-  it("shows low-energy short-session changes and confirms the displayed input", async () => {
-    const state = shortSessionUserState();
-    const program = getProgram(state.settings.programId, state.customPrograms);
-    const prepared = prepareWorkoutFromState(state, program.workouts[0].id);
-    expect(prepared).not.toBeNull();
-    expect(prepared!.prescriptions.slice(0, 2).every((item) => item.priority === "primary")).toBe(true);
-    expect(prepared!.prescriptions.some((item) => item.optional || item.priority === "accessory")).toBe(true);
+  it("starts the planned workout through the fast path with the prepared duration", async () => {
+    const { state, prepared } = preparedFixture();
+    const confirm = vi.fn(() => null);
+    const user = userEvent.setup();
+
+    render(<ReadinessCheck prepared={prepared} confirm={confirm} cancel={vi.fn()} />);
+
+    expect(screen.getByRole("button", { name: /tập như kế hoạch/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /tôi cần điều chỉnh/i })).toBeInTheDocument();
+    expect(screen.queryByRole("slider")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /tập như kế hoạch/i }));
+
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(confirm).toHaveBeenCalledWith({
+      energy: "normal",
+      soreness: "manageable",
+      pain: null,
+      availableMinutes: state.profile.sessionMinutes,
+    });
+  });
+
+  it("reveals adjustment controls and confirms the displayed short-session input", async () => {
+    const { prepared } = preparedFixture();
+    expect(prepared.prescriptions.slice(0, 2).every((item) => item.priority === "primary")).toBe(true);
+    expect(prepared.prescriptions.some((item) => item.optional || item.priority === "accessory")).toBe(true);
 
     const confirm = vi.fn(() => null);
     const user = userEvent.setup();
-    render(<ReadinessCheck prepared={prepared!} confirm={confirm} cancel={vi.fn()} />);
+    render(<ReadinessCheck prepared={prepared} confirm={confirm} cancel={vi.fn()} />);
 
+    await user.click(screen.getByRole("button", { name: /tôi cần điều chỉnh/i }));
     await user.click(screen.getByRole("button", { name: /thấp/i }));
     fireEvent.change(screen.getByRole("slider"), { target: { value: "35" } });
 
@@ -28,7 +56,7 @@ describe("ReadinessCheck", () => {
     expect(removedValue).not.toBeNull();
     expect(removedValue).not.toHaveTextContent("0");
 
-    await user.click(screen.getByRole("button", { name: /xác nhận và bắt đầu/i }));
+    await user.click(screen.getByRole("button", { name: /áp dụng và bắt đầu/i }));
     expect(confirm).toHaveBeenCalledTimes(1);
     expect(confirm).toHaveBeenCalledWith(expect.objectContaining({
       energy: "low",

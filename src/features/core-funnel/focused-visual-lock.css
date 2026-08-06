@@ -1,0 +1,68 @@
+/* Final concept-to-render lock after visual artifact review. */
+.modal-backdrop:has(.focused-recap) {
+  background: rgba(2, 4, 3, .78);
+}
+
+.modal:has(.focused-recap) {
+  color-scheme: dark;
+  --surface: #090c0a;
+  --surface-2: #0d110e;
+  --surface-3: #151b17;
+  --ink: #f5f8f3;
+  --ink-2: #c9d0ca;
+  --muted: #929b94;
+  --line: #252d27;
+  --line-strong: #39423b;
+  --accent: #b8f70b;
+  --accent-strong: #d1ff54;
+  --accent-ink: #101800;
+  --warning: #ffc44f;
+  overflow: hidden;
+  border-color: #2b342d;
+  background: #090c0a;
+  color: var(--ink);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .68);
+}
+
+.modal:has(.focused-recap) > header {
+  border-bottom-color: var(--line);
+  background: #090c0a;
+  color: var(--ink);
+}
+
+.modal:has(.focused-recap) > header h2 {
+  color: var(--ink);
+}
+
+.modal:has(.focused-recap) > header .icon-button {
+  border-color: var(--line-strong);
+  background: #111613;
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.modal:has(.focused-recap) .modal-body {
+  background: #090c0a;
+}
+
+.focused-coach-surface .readiness-plan-strip strong {
+  overflow: visible;
+  font-size: 8px;
+  line-height: 1.25;
+  text-align: center;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+@media (min-width: 700px) {
+  .focused-coach-surface .focused-workout-content {
+    width: min(980px, 100%);
+  }
+
+  .focused-coach-surface .focused-set-table .guided-set-row,
+  .focused-coach-surface .focused-set-table.mode-weight-reps .guided-set-row,
+  .focused-coach-surface .focused-set-table.mode-assisted-reps .guided-set-row,
+  .focused-coach-surface .focused-set-table.mode-weighted-bodyweight-reps .guided-set-row {
+    grid-template-columns: 82px 128px minmax(142px, 1fr) 110px 132px 108px;
+  }
+}

@@ -34,7 +34,7 @@ const recap: WorkoutCoachRecap = {
 };
 
 describe("WorkoutRecapModal", () => {
-  it("shows the three coaching questions before raw workout metrics", () => {
+  it("promotes the next action while preserving the three coaching questions", () => {
     const dismissRecap = vi.fn();
     const app = {
       state: { lastRecap: recap },
@@ -43,15 +43,20 @@ describe("WorkoutRecapModal", () => {
 
     render(<WorkoutRecapModal app={app} />);
 
+    const priority = screen.getByRole("heading", { name: /ưu tiên buổi tiếp theo/i });
+    const promoted = screen.getByRole("heading", { name: /dumbbell bench press: tăng lên 22 kg/i });
     const wentWell = screen.getByRole("heading", { name: /hôm nay bạn làm tốt điều gì/i });
     const attention = screen.getByRole("heading", { name: /có gì cần chú ý/i });
     const nextTime = screen.getByRole("heading", { name: /lần sau sẽ thay đổi gì/i });
-    const details = screen.getByText(/chi tiết buổi tập/i);
+    const metrics = screen.getByText(/chi tiết buổi tập/i);
 
+    expect(priority).toBeInTheDocument();
+    expect(promoted).toBeInTheDocument();
+    expect(promoted.compareDocumentPosition(wentWell) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(wentWell).toBeInTheDocument();
     expect(attention).toBeInTheDocument();
     expect(nextTime).toBeInTheDocument();
-    expect(nextTime.compareDocumentPosition(details) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(screen.getByText(/mọi working set đạt đầu trên rep range/i)).toBeInTheDocument();
+    expect(nextTime.compareDocumentPosition(metrics) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getAllByText(/mọi working set đạt đầu trên rep range/i).length).toBeGreaterThan(0);
   });
 });
