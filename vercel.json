@@ -1,0 +1,5 @@
+{
+  "buildCommand": "npm run check:fast",
+  "outputDirectory": "dist",
+  "framework": "vite"
+}
