@@ -1,0 +1,397 @@
+.focused-coach-surface,
+.guided-recap[data-ui="focused-coach"] {
+  color-scheme: dark;
+  --bg: #050706;
+  --surface: #0b0f0d;
+  --surface-2: #111613;
+  --surface-3: #181f1a;
+  --ink: #f5f8f3;
+  --ink-2: #c9d0ca;
+  --muted: #929b94;
+  --line: #252d27;
+  --line-strong: #39423b;
+  --accent: #b8f70b;
+  --accent-strong: #d1ff54;
+  --accent-ink: #101800;
+  --accent-soft: #1c2908;
+  --accent-glow: rgba(184, 247, 11, .22);
+  --danger: #ff615c;
+  --danger-soft: #351716;
+  --warning: #ffc44f;
+  --warning-soft: #33270f;
+  --success: #b8f70b;
+  --shadow: 0 24px 70px rgba(0, 0, 0, .5);
+  --shadow-soft: 0 10px 30px rgba(0, 0, 0, .28);
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 13px;
+  --radius-sm: 9px;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.focused-coach-surface .eyebrow,
+.guided-recap[data-ui="focused-coach"] .eyebrow {
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.focused-coach-surface .primary-button,
+.guided-recap[data-ui="focused-coach"] .primary-button {
+  min-height: 48px;
+  border: 1px solid color-mix(in srgb, var(--accent) 75%, white);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #c9ff25, #a8e500);
+  color: #0b1200;
+  box-shadow: 0 10px 26px rgba(184, 247, 11, .18);
+  font-weight: 900;
+}
+
+.focused-coach-surface .secondary-button,
+.guided-recap[data-ui="focused-coach"] .secondary-button {
+  min-height: 46px;
+  border-color: var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.focused-coach-surface input,
+.focused-coach-surface select,
+.focused-coach-surface textarea {
+  border-color: var(--line-strong);
+  border-radius: 10px;
+  background: #080b09;
+  color: var(--ink);
+}
+
+.focused-coach-surface button:focus-visible,
+.focused-coach-surface input:focus,
+.focused-coach-surface select:focus,
+.focused-coach-surface textarea:focus,
+.focused-coach-surface summary:focus-visible,
+.guided-recap[data-ui="focused-coach"] button:focus-visible,
+.guided-recap[data-ui="focused-coach"] summary:focus-visible {
+  outline: 3px solid rgba(184, 247, 11, .34);
+  outline-offset: 2px;
+}
+
+/* Onboarding */
+.guided-onboarding-shell.focused-coach-surface {
+  min-height: 100dvh;
+  padding: max(14px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 50% -15%, rgba(184, 247, 11, .09), transparent 34%),
+    #050706;
+}
+
+.focused-coach-surface .guided-onboarding-card {
+  width: min(760px, 100%);
+  border-color: #2b342d;
+  border-radius: 20px;
+  background: #090c0a;
+  box-shadow: var(--shadow);
+}
+
+.focused-coach-surface .guided-onboarding-header {
+  gap: 12px;
+  padding: 18px 18px 15px;
+  border-bottom-color: var(--line);
+  background: linear-gradient(180deg, rgba(184, 247, 11, .04), transparent);
+}
+
+.focused-coach-surface .guided-onboarding-header .brand-mark {
+  width: 38px;
+  height: 38px;
+  flex-basis: 38px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.focused-coach-surface .guided-onboarding-header h1 {
+  margin-top: 5px;
+  font-size: clamp(23px, 6vw, 34px);
+  line-height: 1.02;
+}
+
+.focused-coach-surface .guided-onboarding-header p,
+.focused-coach-surface .guided-step-description {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.focused-coach-surface .guided-progress {
+  gap: 4px;
+  padding: 12px 16px;
+  border-bottom-color: var(--line);
+}
+
+.focused-coach-surface .guided-progress li {
+  gap: 5px;
+  color: #6f7871;
+}
+
+.focused-coach-surface .guided-progress li > span {
+  width: 23px;
+  height: 23px;
+  flex-basis: 23px;
+  border: 1px solid var(--line-strong);
+  background: #0a0d0b;
+}
+
+.focused-coach-surface .guided-progress li.active > span {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.focused-coach-surface .guided-progress small { font-size: 8px; }
+.focused-coach-surface .guided-step { min-height: 0; padding: 22px 16px 26px; }
+.focused-coach-surface .guided-step-title { font-size: clamp(24px, 7vw, 32px); line-height: 1.05; }
+.focused-coach-surface .guided-fields { gap: 13px; margin-top: 18px; }
+
+.focused-coach-surface .guided-field-group {
+  gap: 10px;
+  padding: 14px;
+  border-color: var(--line);
+  border-radius: 12px;
+  background: #0d110e;
+}
+
+.focused-coach-surface .guided-field-group h3 { font-size: 12px; letter-spacing: -.015em; }
+.focused-coach-surface .guided-choice-grid { gap: 8px; }
+.focused-coach-surface .guided-choice-grid button,
+.focused-coach-surface .guided-chip-grid button,
+.focused-coach-surface .guided-day-grid button {
+  border-color: var(--line-strong);
+  border-radius: 10px;
+  background: #090c0a;
+  color: var(--ink);
+}
+
+.focused-coach-surface .guided-choice-card {
+  min-height: 94px !important;
+  gap: 5px;
+  padding: 14px;
+}
+
+.focused-coach-surface .guided-choice-card strong { font-size: 13px; }
+.focused-coach-surface .guided-choice-card small { color: var(--muted); font-size: 10px; }
+
+.focused-coach-surface .guided-choice-grid button.selected,
+.focused-coach-surface .guided-chip-grid button.selected,
+.focused-coach-surface .guided-day-grid button.selected,
+.focused-coach-surface .guided-choice-card.selected {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, rgba(184, 247, 11, .11), rgba(184, 247, 11, .035));
+  color: var(--ink);
+  box-shadow: inset 3px 0 0 var(--accent), 0 0 0 1px rgba(184, 247, 11, .08);
+}
+
+.focused-coach-surface .guided-context-note,
+.focused-coach-surface .guided-warning {
+  border: 1px solid #33401c;
+  border-radius: 10px;
+  background: #111909;
+  color: #c7e887;
+}
+
+.focused-coach-surface .guided-advanced {
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: #090c0a;
+}
+
+.focused-coach-surface .guided-advanced summary {
+  display: flex;
+  min-height: 68px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.focused-coach-surface .guided-advanced summary::-webkit-details-marker { display: none; }
+.focused-coach-surface .guided-advanced summary > span {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 3px 9px;
+}
+.focused-coach-surface .guided-advanced summary svg:first-child { grid-row: 1 / 3; color: var(--accent); }
+.focused-coach-surface .guided-advanced summary strong { font-size: 12px; }
+.focused-coach-surface .guided-advanced summary small { color: var(--muted); font-size: 9px; }
+.focused-coach-surface .guided-advanced summary > svg { transition: transform .18s ease; }
+.focused-coach-surface .guided-advanced[open] summary > svg { transform: rotate(180deg); }
+.focused-coach-surface .guided-advanced-content { display: grid; gap: 10px; padding: 0 10px 10px; }
+
+.focused-coach-surface .guided-plan-preview {
+  border-color: #3a4820;
+  border-radius: 16px;
+  background: #090d09;
+}
+.focused-coach-surface .guided-plan-hero {
+  position: relative;
+  display: grid;
+  min-height: 245px;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 82% 40%, rgba(184, 247, 11, .14), transparent 40%),
+    linear-gradient(135deg, #111712, #070a08);
+}
+.focused-coach-surface .guided-plan-heading {
+  position: relative;
+  z-index: 2;
+  display: block;
+  padding: 18px 0 18px 18px;
+}
+.focused-coach-surface .guided-plan-heading .guided-plan-icon { margin-bottom: 13px; }
+.focused-coach-surface .guided-plan-heading > strong {
+  display: block;
+  margin-top: 15px;
+  color: var(--accent);
+  font-size: 19px;
+}
+.focused-coach-surface .guided-athlete-media {
+  position: relative;
+  align-self: stretch;
+  overflow: hidden;
+}
+.focused-coach-surface .guided-athlete-media::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #0d120e 0, transparent 45%), linear-gradient(0deg, #090d09 0, transparent 35%);
+  content: "";
+}
+.focused-coach-surface .guided-athlete-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+.focused-coach-surface .guided-plan-metrics { border-color: var(--line); }
+.focused-coach-surface .guided-plan-metrics span + span { border-left-color: var(--line); }
+.focused-coach-surface .guided-reason-list > div { color: var(--ink-2); }
+
+.focused-coach-surface .guided-actions {
+  position: sticky;
+  z-index: 5;
+  bottom: 0;
+  padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+  border-top-color: var(--line);
+  background: rgba(9, 12, 10, .94);
+}
+
+/* Readiness */
+.readiness-shell.focused-coach-surface {
+  min-height: 100dvh;
+  padding: max(12px, env(safe-area-inset-top)) 10px max(12px, env(safe-area-inset-bottom));
+  background: radial-gradient(circle at 50% -10%, rgba(184, 247, 11, .08), transparent 36%), #050706;
+}
+.focused-coach-surface .readiness-card {
+  width: min(680px, 100%);
+  border-color: #2b342d;
+  border-radius: 20px;
+  background: #090c0a;
+  box-shadow: var(--shadow);
+}
+.focused-coach-surface .readiness-header {
+  padding: 17px 15px;
+  border-bottom-color: var(--line);
+}
+.focused-coach-surface .readiness-header h1 { margin-top: 4px; font-size: clamp(24px, 7vw, 31px); }
+.focused-coach-surface .readiness-header p { color: var(--muted); font-size: 10px; }
+.focused-coach-surface .readiness-header .icon-button { border-color: var(--line-strong); background: #0d110e; box-shadow: none; }
+.focused-coach-surface .readiness-quick { display: grid; gap: 14px; padding: 16px; }
+.focused-coach-surface .readiness-plan-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.focused-coach-surface .readiness-plan-strip span {
+  display: flex;
+  min-width: 0;
+  min-height: 45px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #0d110e;
+  color: var(--muted);
+}
+.focused-coach-surface .readiness-plan-strip svg { flex: 0 0 auto; color: var(--accent); }
+.focused-coach-surface .readiness-plan-strip strong { overflow: hidden; color: var(--ink-2); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.focused-coach-surface .readiness-fast-action {
+  display: grid;
+  min-height: 92px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--accent);
+  border-radius: 13px;
+  background: linear-gradient(135deg, rgba(184, 247, 11, .15), rgba(184, 247, 11, .035));
+  color: var(--ink);
+  text-align: left;
+}
+.focused-coach-surface .readiness-fast-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.focused-coach-surface .readiness-fast-action strong { display: block; font-size: 15px; }
+.focused-coach-surface .readiness-fast-action small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
+.focused-coach-surface .readiness-adjust-intro {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: #0d110e;
+}
+.focused-coach-surface .readiness-adjust-intro h2 { font-size: 19px; }
+.focused-coach-surface .readiness-adjust-intro p { color: var(--muted); font-size: 10px; line-height: 1.55; }
+.focused-coach-surface .readiness-adjust-intro .secondary-button { margin-top: 5px; }
+.focused-coach-surface .readiness-content { padding: 14px; }
+.focused-coach-surface .readiness-section { border-color: var(--line); border-radius: 12px; background: #0d110e; }
+.focused-coach-surface .readiness-choice-grid button { border-color: var(--line-strong); border-radius: 10px; background: #090c0a; color: var(--ink); }
+.focused-coach-surface .readiness-choice-grid button.selected { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+.focused-coach-surface .readiness-preview { border-color: #3a4820; border-radius: 13px; background: #111909; }
+.focused-coach-surface .readiness-preview.blocked { border-color: #6a2825; background: #1a0c0b; }
+.focused-coach-surface .readiness-actions { border-top-color: var(--line); background: rgba(9, 12, 10, .95); }
+
+@media (min-width: 700px) {
+  .guided-onboarding-shell.focused-coach-surface,
+  .readiness-shell.focused-coach-surface { padding: 30px; }
+  .focused-coach-surface .guided-onboarding-header { padding: 24px 26px 19px; }
+  .focused-coach-surface .guided-step { padding: 28px 26px 34px; }
+  .focused-coach-surface .guided-actions { padding-right: 26px; padding-left: 26px; }
+  .focused-coach-surface .guided-plan-hero { grid-template-columns: minmax(0, 1fr) 190px; }
+  .focused-coach-surface .guided-plan-heading { padding: 28px 0 28px 28px; }
+}
+
+@media (max-width: 370px) {
+  .focused-coach-surface .guided-progress small { display: none; }
+  .focused-coach-surface .guided-plan-hero { grid-template-columns: minmax(0, 1fr) 86px; }
+  .focused-coach-surface .readiness-plan-strip { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focused-coach-surface *,
+  .guided-recap[data-ui="focused-coach"] * { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

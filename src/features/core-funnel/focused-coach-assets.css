@@ -1,0 +1,7 @@
+.focused-coach-surface .guided-athlete-media {
+  background: url('/images/liftpath-athlete-preview.svg') center top / cover no-repeat;
+}
+
+.focused-coach-surface .guided-athlete-media img {
+  opacity: 0;
+}

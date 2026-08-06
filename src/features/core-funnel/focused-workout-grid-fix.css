@@ -1,0 +1,97 @@
+/* The legacy responsive set table defines named grid areas. The focused layout
+   intentionally replaces that anatomy, so every cell receives one explicit area. */
+.focused-coach-surface .focused-set-table .guided-set-row,
+.focused-coach-surface .focused-set-table.mode-weight-reps .guided-set-row,
+.focused-coach-surface .focused-set-table.mode-assisted-reps .guided-set-row,
+.focused-coach-surface .focused-set-table.mode-weighted-bodyweight-reps .guided-set-row {
+  position: relative;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    "index previous"
+    "load metric"
+    "effort effort"
+    "action action";
+  align-items: stretch;
+  isolation: isolate;
+  scroll-margin-top: 94px;
+}
+
+.focused-coach-surface .focused-set-table.mode-bodyweight-reps .guided-set-row,
+.focused-coach-surface .focused-set-table.mode-duration .guided-set-row,
+.focused-coach-surface .focused-set-table.mode-distance .guided-set-row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    "index previous"
+    "metric metric"
+    "effort effort"
+    "action action";
+}
+
+.focused-coach-surface .focused-set-table .guided-set-index {
+  grid-area: index;
+  min-width: 0;
+}
+
+.focused-coach-surface .focused-set-table .previous-cell {
+  grid-area: previous;
+  min-width: 0;
+}
+
+.focused-coach-surface .focused-set-table .load-cell {
+  grid-area: load;
+  min-width: 0;
+}
+
+.focused-coach-surface .focused-set-table .focused-metric-field {
+  grid-area: metric !important;
+  min-width: 0;
+}
+
+.focused-coach-surface .focused-set-table .focused-effort-field {
+  grid-area: effort !important;
+  min-width: 0;
+}
+
+.focused-coach-surface .focused-set-table .guided-set-actions {
+  position: relative;
+  z-index: 2;
+  grid-area: action;
+  min-width: 0;
+}
+
+.focused-coach-surface .focused-set-table .previous-cell button,
+.focused-coach-surface .focused-set-table .guided-set-actions button,
+.focused-coach-surface .focused-set-table input,
+.focused-coach-surface .focused-set-table select {
+  position: relative;
+  inset: auto;
+  max-width: 100%;
+  scroll-margin-top: 104px;
+}
+
+.focused-coach-surface .focused-set-table .guided-set-row.complete {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "index previous action";
+}
+
+.focused-coach-surface .focused-set-table .guided-set-row.complete .guided-set-index { grid-area: index; }
+.focused-coach-surface .focused-set-table .guided-set-row.complete .previous-cell { grid-area: previous; }
+.focused-coach-surface .focused-set-table .guided-set-row.complete .guided-set-actions { grid-area: action; }
+
+@media (min-width: 700px) {
+  .focused-coach-surface .focused-set-table .guided-set-row,
+  .focused-coach-surface .focused-set-table.mode-weight-reps .guided-set-row,
+  .focused-coach-surface .focused-set-table.mode-assisted-reps .guided-set-row,
+  .focused-coach-surface .focused-set-table.mode-weighted-bodyweight-reps .guided-set-row {
+    grid-template-columns: 105px 140px minmax(150px, 1fr) 120px 145px 115px;
+    grid-template-areas: "index previous load metric effort action";
+    align-items: center;
+  }
+
+  .focused-coach-surface .focused-set-table.mode-bodyweight-reps .guided-set-row,
+  .focused-coach-surface .focused-set-table.mode-duration .guided-set-row,
+  .focused-coach-surface .focused-set-table.mode-distance .guided-set-row {
+    grid-template-columns: 105px 140px minmax(120px, 1fr) 145px 115px;
+    grid-template-areas: "index previous metric effort action";
+  }
+}

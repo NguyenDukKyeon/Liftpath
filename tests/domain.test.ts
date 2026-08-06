@@ -52,7 +52,7 @@ test("migrates legacy A/B/C sessions and snapshots exercise metadata", () => {
       exercises: [{ exerciseId: "db_bench", note: "", sets: [{ weight: "20", reps: "10", rpe: "7", done: true }] }],
     }],
   });
-  assert.equal(migrated.schemaVersion, 3);
+  assert.equal(migrated.schemaVersion, 4);
   assert.equal(migrated.history[0].dayId, "FB-A");
   assert.equal(migrated.history[0].exercises[0].snapshot.name, "Dumbbell Bench Press");
   assert.equal(migrated.profile.onboardingComplete, true);

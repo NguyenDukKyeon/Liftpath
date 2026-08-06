@@ -1,15 +1,22 @@
 {
   "name": "liftpath",
   "private": true,
-  "version": "2.0.0",
+  "version": "4.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 3000",
     "build": "tsc -b && vite build",
     "preview": "vite preview --host 0.0.0.0",
     "lint": "tsc -b --pretty false",
-    "test": "node -e \"require('fs').rmSync('.test-dist',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test .test-dist/tests/*.test.js",
-    "check": "npm run lint && npm run test && npm run build"
+    "test": "npm run test:domain",
+    "check": "npm run check:fast && npm run test:e2e && npm run test:d2",
+    "test:domain": "node -e \"require('fs').rmSync('.test-dist',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test .test-dist/tests/*.test.js",
+    "test:component": "vitest run",
+    "test:e2e": "playwright test --grep-invert @a11y",
+    "test:a11y": "playwright test --grep @a11y",
+    "test:d2": "playwright test -c playwright.d2.config.ts",
+    "audit:production": "npm audit --omit=dev --audit-level=moderate",
+    "check:fast": "npm run lint && npm run test:domain && npm run test:component && npm run build"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.2.0",
@@ -19,9 +26,19 @@
     "vite": "^8.0.16"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.62.1",
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.3",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "typescript": "^5.8.3"
+    "jsdom": "^30.0.1",
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "postcss": "8.5.23"
   }
 }

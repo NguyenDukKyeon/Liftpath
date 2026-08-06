@@ -1,11 +1,39 @@
-const CACHE_NAME = "liftpath-shell-v8";
+const CACHE_NAME = "liftpath-shell-v10";
 const scopeUrl = new URL("./", self.registration.scope).href;
-const appIconUrl = new URL("app-icon.svg?v=4", self.registration.scope).href;
-const shellAssets = [scopeUrl, new URL("manifest.webmanifest", self.registration.scope).href, appIconUrl];
+const manifestUrl = new URL("manifest.webmanifest", self.registration.scope).href;
+const appIconUrl = new URL("app-icon-v3.svg?v=4", self.registration.scope).href;
 let restTimeout = null;
 
+const discoverShellAssets = (html) => {
+  const urls = new Set([manifestUrl, appIconUrl]);
+  for (const match of html.matchAll(/(?:src|href)=["']([^"']+)["']/g)) {
+    try {
+      const url = new URL(match[1], scopeUrl);
+      if (url.origin === self.location.origin && url.href.startsWith(self.registration.scope)) {
+        urls.add(url.href);
+      }
+    } catch {
+      // Ignore malformed or unsupported URLs in the shell document.
+    }
+  }
+  return [...urls];
+};
+
+const precacheShell = async () => {
+  const cache = await caches.open(CACHE_NAME);
+  const shellResponse = await fetch(new Request(scopeUrl, { cache: "reload" }));
+  if (!shellResponse.ok) throw new Error(`Unable to cache LiftPath shell: ${shellResponse.status}`);
+  const html = await shellResponse.clone().text();
+  await cache.put(scopeUrl, shellResponse);
+  await Promise.all(discoverShellAssets(html).map(async (url) => {
+    const response = await fetch(new Request(url, { cache: "reload" }));
+    if (!response.ok) throw new Error(`Unable to cache LiftPath asset: ${url}`);
+    await cache.put(url, response);
+  }));
+};
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(shellAssets)).catch(() => undefined).then(() => self.skipWaiting()));
+  event.waitUntil(precacheShell().then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {
@@ -24,10 +52,10 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(fetch(request).then((response) => {
       if (response.ok) void caches.open(CACHE_NAME).then((cache) => cache.put(scopeUrl, response.clone()));
       return response;
-    }).catch(async () => (await caches.match(scopeUrl)) || Response.error()));
+    }).catch(async () => (await caches.match(scopeUrl, { ignoreVary: true })) || Response.error()));
     return;
   }
-  event.respondWith(caches.match(request).then((cached) => cached || fetch(request).then((response) => {
+  event.respondWith(caches.match(request, { ignoreVary: true }).then((cached) => cached || fetch(request).then((response) => {
     if (response.ok && response.type === "basic") void caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
     return response;
   }).catch(() => Response.error())));
