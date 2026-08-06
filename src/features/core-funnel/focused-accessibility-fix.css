@@ -1,0 +1,14 @@
+/* Final accessibility lock for the approved dark Athletic Precision palette. */
+.focused-coach-surface .guided-progress li,
+.focused-coach-surface .guided-progress li > small {
+  color: #8d978f;
+}
+
+.focused-coach-surface .guided-progress li.active,
+.focused-coach-surface .guided-progress li.active > small {
+  color: var(--accent-strong);
+}
+
+.focused-coach-surface .finish-button {
+  min-height: 44px;
+}
