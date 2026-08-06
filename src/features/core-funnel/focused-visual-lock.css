@@ -53,3 +53,16 @@
   text-overflow: clip;
   white-space: normal;
 }
+
+@media (min-width: 700px) {
+  .focused-coach-surface .focused-workout-content {
+    width: min(980px, 100%);
+  }
+
+  .focused-coach-surface .focused-set-table .guided-set-row,
+  .focused-coach-surface .focused-set-table.mode-weight-reps .guided-set-row,
+  .focused-coach-surface .focused-set-table.mode-assisted-reps .guided-set-row,
+  .focused-coach-surface .focused-set-table.mode-weighted-bodyweight-reps .guided-set-row {
+    grid-template-columns: 82px 128px minmax(142px, 1fr) 110px 132px 108px;
+  }
+}
