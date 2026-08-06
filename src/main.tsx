@@ -14,6 +14,7 @@ import "./features/core-funnel/focused-workout.css";
 import "./features/core-funnel/focused-workout-grid-fix.css";
 import "./features/core-funnel/focused-recap.css";
 import "./features/core-funnel/focused-accessibility-fix.css";
+import "./features/core-funnel/focused-visual-lock.css";
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
