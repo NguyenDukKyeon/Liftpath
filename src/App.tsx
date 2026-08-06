@@ -68,7 +68,7 @@ export default function App() {
   };
 
   return (
-    <div className="app-shell">
+    <div className="app-shell supporting-shell" data-ui="athletic-supporting" data-screen={tab}>
       <aside className="desktop-rail">
         <Brand />
         <nav className="rail-nav" aria-label="Điều hướng chính">
@@ -83,7 +83,7 @@ export default function App() {
           <div className="page-heading"><div><span className="eyebrow">{meta[tab].eyebrow}</span><h1>{meta[tab].title}</h1><p>{meta[tab].subtitle}</p></div><button className="icon-button mobile-theme" type="button" aria-label="Đổi giao diện" onClick={() => app.updateSettings({ theme: app.state.settings.theme === "dark" ? "light" : "dark" })}>{app.state.settings.theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}</button></div>
         </header>
 
-        <main className="page-content">
+        <main className={`page-content screen-${tab}`}>
           {tab === "today" && <TodayScreen app={app} requestProgramSwitch={setSwitchTarget} goPrograms={() => setTab("programs")} />}
           {tab === "programs" && <ProgramsScreen app={app} requestProgramSwitch={setSwitchTarget} />}
           {tab === "history" && <HistoryScreen app={app} />}
