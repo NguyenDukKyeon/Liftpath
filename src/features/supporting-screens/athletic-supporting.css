@@ -1,0 +1,1358 @@
+/* LiftPath 4.2 — Athletic Precision supporting screens.
+   Scoped to the persistent app shell so onboarding/readiness/workout/recap remain isolated. */
+
+.supporting-shell {
+  color-scheme: light;
+  --bg: #f4f6f2;
+  --surface: #ffffff;
+  --surface-2: #f7f8f6;
+  --surface-3: #ecefeb;
+  --ink: #111510;
+  --ink-2: #363d36;
+  --muted: #687168;
+  --line: #d7ddd6;
+  --line-strong: #bbc4bb;
+  --accent: #9ddd00;
+  --accent-strong: #527c00;
+  --accent-ink: #101700;
+  --accent-soft: #e8f6c8;
+  --accent-glow: rgba(121, 183, 0, .22);
+  --danger: #c63f3b;
+  --danger-soft: #fae8e6;
+  --warning: #8e5d06;
+  --warning-soft: #fff2cf;
+  --success: #287845;
+  --shadow: 0 18px 48px rgba(13, 22, 13, .09);
+  --shadow-soft: 0 9px 28px rgba(13, 22, 13, .055);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 82% -10%, rgba(157, 221, 0, .10), transparent 31rem),
+    var(--bg);
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .supporting-shell {
+  color-scheme: dark;
+  --bg: #050705;
+  --surface: #0b0e0c;
+  --surface-2: #101411;
+  --surface-3: #171c18;
+  --ink: #f5f8f3;
+  --ink-2: #cbd2cb;
+  --muted: #8d978f;
+  --line: #252c27;
+  --line-strong: #3a443d;
+  --accent: #b8f70b;
+  --accent-strong: #d2ff55;
+  --accent-ink: #101800;
+  --accent-soft: #1c290b;
+  --accent-glow: rgba(184, 247, 11, .18);
+  --danger: #ff6f69;
+  --danger-soft: #351b1a;
+  --warning: #ffc34d;
+  --warning-soft: #302510;
+  --success: #7cda93;
+  --shadow: 0 24px 72px rgba(0, 0, 0, .46);
+  --shadow-soft: 0 12px 36px rgba(0, 0, 0, .28);
+  background:
+    radial-gradient(circle at 84% -12%, rgba(184, 247, 11, .075), transparent 34rem),
+    #050705;
+}
+
+.supporting-shell,
+.supporting-shell button,
+.supporting-shell input,
+.supporting-shell select,
+.supporting-shell textarea {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.supporting-shell h1,
+.supporting-shell h2,
+.supporting-shell h3,
+.supporting-shell .brand strong,
+.supporting-shell .metric-card strong,
+.supporting-shell .program-frequency strong,
+.supporting-shell .insight-score strong {
+  font-family: "Arial Narrow", "Roboto Condensed", Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -.035em;
+}
+
+.supporting-shell .app-frame {
+  min-width: 0;
+  background: transparent;
+}
+
+.supporting-shell .app-header {
+  position: relative;
+  z-index: 3;
+  padding: max(16px, env(safe-area-inset-top)) 16px 13px;
+}
+
+.supporting-shell .mobile-brand .brand-mark,
+.supporting-shell .desktop-rail .brand-mark {
+  border: 1px solid color-mix(in srgb, var(--accent) 58%, transparent);
+  border-radius: 11px;
+  background: var(--accent);
+  box-shadow: 0 0 28px var(--accent-glow);
+}
+
+.supporting-shell .brand strong {
+  color: var(--ink);
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 950;
+  letter-spacing: -.055em;
+  text-transform: uppercase;
+}
+
+.supporting-shell .brand small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.supporting-shell .page-heading {
+  margin-top: 20px;
+  align-items: center;
+}
+
+.supporting-shell .page-heading .eyebrow {
+  color: var(--accent-strong);
+  font-size: 9px;
+  letter-spacing: .19em;
+}
+
+.supporting-shell .page-heading h1 {
+  margin-top: 5px;
+  color: var(--ink);
+  font-size: clamp(27px, 7vw, 39px);
+  font-weight: 900;
+  line-height: .98;
+}
+
+.supporting-shell .page-heading p {
+  max-width: 46rem;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.supporting-shell .mobile-theme,
+.supporting-shell .icon-button {
+  width: 44px;
+  height: 44px;
+  border-color: var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.supporting-shell .page-content {
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding: 0 14px max(112px, calc(env(safe-area-inset-bottom) + 88px));
+}
+
+.supporting-shell .stack {
+  gap: 14px;
+}
+
+.supporting-shell .card {
+  border-color: var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .supporting-shell .card {
+  background: linear-gradient(145deg, #0d110e, #090c0a);
+}
+
+.supporting-shell .eyebrow {
+  color: var(--accent-strong);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .17em;
+}
+
+.supporting-shell .section-title-row h2 {
+  color: var(--ink);
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.supporting-shell .primary-button,
+.supporting-shell .secondary-button,
+.supporting-shell .hero-secondary,
+.supporting-shell .danger-button,
+.supporting-shell .danger-text-button {
+  min-height: 44px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: -.01em;
+}
+
+.supporting-shell .primary-button {
+  border: 1px solid color-mix(in srgb, var(--accent) 82%, #fff 18%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 92%, #fff 8%), var(--accent));
+  color: var(--accent-ink);
+  box-shadow: 0 9px 26px var(--accent-glow);
+}
+
+.supporting-shell .secondary-button,
+.supporting-shell .hero-secondary {
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.supporting-shell button:focus-visible,
+.supporting-shell input:focus,
+.supporting-shell select:focus,
+.supporting-shell textarea:focus,
+.supporting-shell summary:focus-visible {
+  outline: 3px solid var(--accent-glow);
+  outline-offset: 2px;
+  border-color: var(--accent);
+}
+
+.supporting-shell input,
+.supporting-shell select,
+.supporting-shell textarea {
+  border-color: var(--line);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.supporting-shell input,
+.supporting-shell select {
+  min-height: 44px;
+}
+
+.supporting-shell .field {
+  color: var(--ink-2);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.supporting-shell .bottom-nav {
+  right: 8px;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  left: 8px;
+  gap: 2px;
+  padding: 6px;
+  border-color: var(--line-strong);
+  border-radius: 17px;
+  background: color-mix(in srgb, var(--surface) 93%, transparent);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, .26);
+  backdrop-filter: blur(22px) saturate(1.25);
+}
+
+.supporting-shell .bottom-nav button {
+  min-height: 50px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.supporting-shell .bottom-nav button.active {
+  border-color: color-mix(in srgb, var(--accent) 58%, transparent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.supporting-shell .bottom-nav button.active svg {
+  filter: drop-shadow(0 0 7px var(--accent-glow));
+}
+
+/* Today */
+.supporting-shell .screen-today > .stack {
+  display: flex;
+}
+
+.supporting-shell .screen-today .workout-hero {
+  order: 1;
+  min-height: 250px;
+  align-content: end;
+  padding: 24px;
+  border: 1px solid #303a31;
+  border-radius: 20px;
+  background:
+    linear-gradient(90deg, rgba(3, 5, 3, .96) 0%, rgba(5, 8, 5, .88) 58%, rgba(8, 14, 7, .42) 100%),
+    radial-gradient(circle at 86% 18%, rgba(184, 247, 11, .23), transparent 17rem),
+    #070a08;
+  color: #f6f9f4;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, .32);
+}
+
+.supporting-shell .screen-today .workout-hero::before {
+  position: absolute;
+  right: 2.5%;
+  bottom: -44%;
+  width: 230px;
+  height: 230px;
+  border: 1px solid rgba(184, 247, 11, .22);
+  border-radius: 50%;
+  content: "";
+  box-shadow: 0 0 0 28px rgba(184, 247, 11, .035), 0 0 0 58px rgba(184, 247, 11, .025);
+}
+
+.supporting-shell .screen-today .workout-hero::after {
+  right: 26px;
+  bottom: 28px;
+  width: 92px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  opacity: .9;
+}
+
+.supporting-shell .screen-today .hero-status {
+  color: #cfd6cf;
+  font-size: 9px;
+  letter-spacing: .14em;
+  opacity: 1;
+}
+
+.supporting-shell .screen-today .hero-copy h2 {
+  max-width: 670px;
+  margin-top: 17px;
+  font-size: clamp(34px, 8vw, 58px);
+  font-weight: 950;
+  letter-spacing: -.055em;
+  text-transform: uppercase;
+}
+
+.supporting-shell .screen-today .hero-copy > p {
+  max-width: 660px;
+  color: #b8c0b9;
+  font-size: 11px;
+  opacity: 1;
+}
+
+.supporting-shell .screen-today .hero-actions {
+  margin-top: 20px;
+}
+
+.supporting-shell .screen-today .hero-secondary {
+  border-color: #3c463e;
+  background: rgba(255, 255, 255, .055);
+  color: #f4f7f2;
+}
+
+.supporting-shell .screen-today .weekly-card { order: 2; }
+.supporting-shell .screen-today .metric-grid { order: 3; }
+.supporting-shell .screen-today .weekly-coach { order: 4; }
+.supporting-shell .screen-today .program-quick { order: 5; }
+.supporting-shell .screen-today .weekly-coach + .section-title-row { order: 6; }
+.supporting-shell .screen-today .exercise-preview-list { order: 7; }
+.supporting-shell .screen-today .exercise-preview-list + .section-title-row { order: 8; }
+.supporting-shell .screen-today .recent-session,
+.supporting-shell .screen-today .exercise-preview-list + .section-title-row + .empty-state { order: 9; }
+.supporting-shell .screen-today .alert-card { order: 10; }
+
+.supporting-shell .screen-today .weekly-card,
+.supporting-shell .screen-today .weekly-coach,
+.supporting-shell .screen-today .program-quick {
+  padding: 18px;
+}
+
+.supporting-shell .weekly-card-head h2 {
+  font-size: 27px;
+  font-weight: 950;
+}
+
+.supporting-shell .week-pill,
+.supporting-shell .recommended-pill {
+  min-height: 25px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, transparent);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.supporting-shell .progress {
+  height: 6px;
+  background: var(--surface-3);
+}
+
+.supporting-shell .progress i {
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
+.supporting-shell .metric-grid {
+  gap: 8px;
+}
+
+.supporting-shell .metric-card {
+  min-height: 105px;
+  padding: 14px;
+  border-radius: 13px;
+}
+
+.supporting-shell .metric-card small,
+.supporting-shell .metric-card span {
+  color: var(--muted);
+  font-size: 8px;
+  white-space: normal;
+}
+
+.supporting-shell .metric-card strong {
+  margin: 11px 0 5px;
+  color: var(--ink);
+  font-size: clamp(18px, 5vw, 27px);
+  font-weight: 950;
+}
+
+.supporting-shell .weekly-coach {
+  border-left: 3px solid var(--accent);
+  background:
+    linear-gradient(90deg, var(--accent-soft), transparent 45%),
+    var(--surface);
+}
+
+html[data-theme="dark"] .supporting-shell .weekly-coach {
+  background:
+    linear-gradient(90deg, rgba(184, 247, 11, .07), transparent 45%),
+    #0b0f0c;
+}
+
+.supporting-shell .coach-message-list p {
+  color: var(--ink-2);
+  font-size: 11px;
+}
+
+.supporting-shell .program-quick {
+  background: var(--surface-2);
+}
+
+.supporting-shell .frequency-switch {
+  gap: 7px;
+}
+
+.supporting-shell .frequency-switch button {
+  min-height: 72px;
+  border-color: var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.supporting-shell .frequency-switch button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent), 0 0 18px var(--accent-glow);
+}
+
+.supporting-shell .frequency-switch button strong {
+  font-size: 27px;
+  font-weight: 950;
+}
+
+.supporting-shell .exercise-preview-list {
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.supporting-shell .exercise-preview-row {
+  min-height: 62px;
+  border-color: var(--line);
+  background: transparent;
+}
+
+.supporting-shell .exercise-preview-row:hover {
+  background: var(--surface-2);
+}
+
+.supporting-shell .exercise-type-icon {
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--line));
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.supporting-shell .recent-session {
+  min-height: 82px;
+  border-left: 3px solid var(--line-strong);
+}
+
+.supporting-shell .alert-card {
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+  border-radius: 13px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.supporting-shell .alert-card svg {
+  color: var(--accent-strong);
+}
+
+/* Programs */
+.supporting-shell .screen-programs .program-selection {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.supporting-shell .screen-programs .program-card {
+  position: relative;
+  min-height: 160px;
+  padding: 16px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+
+.supporting-shell .screen-programs .program-card::after {
+  position: absolute;
+  right: -34px;
+  bottom: -58px;
+  width: 118px;
+  height: 118px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  content: "";
+}
+
+.supporting-shell .screen-programs .program-card.active {
+  border-color: var(--accent);
+  background:
+    linear-gradient(145deg, var(--accent-soft), transparent 72%),
+    var(--surface-2);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 56%, transparent), 0 0 24px var(--accent-glow);
+}
+
+.supporting-shell .program-card h2 {
+  margin-top: 12px;
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.supporting-shell .program-card > p {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.supporting-shell .program-frequency strong {
+  color: var(--ink);
+  font-size: 29px;
+  font-weight: 950;
+}
+
+.supporting-shell .program-select-state {
+  color: var(--accent-strong);
+}
+
+.supporting-shell .screen-programs .program-actions {
+  gap: 7px;
+}
+
+.supporting-shell .screen-programs .program-overview {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: end;
+  min-height: 190px;
+  padding: 22px;
+  overflow: hidden;
+  border-color: #303a31;
+  background:
+    linear-gradient(100deg, rgba(4, 7, 5, .98), rgba(9, 15, 9, .88)),
+    #070a08;
+  color: #f5f8f3;
+}
+
+.supporting-shell .screen-programs .program-overview::after {
+  position: absolute;
+  right: -55px;
+  top: -70px;
+  width: 220px;
+  height: 220px;
+  border: 1px solid rgba(184, 247, 11, .2);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(184, 247, 11, .15), transparent 68%);
+  content: "";
+}
+
+.supporting-shell .screen-programs .program-overview > * {
+  position: relative;
+  z-index: 1;
+}
+
+.supporting-shell .screen-programs .program-overview h2 {
+  color: #f5f8f3;
+  font-size: clamp(28px, 6vw, 43px);
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.supporting-shell .screen-programs .program-overview p,
+.supporting-shell .screen-programs .program-overview-actions {
+  color: #aeb7af;
+}
+
+.supporting-shell .workout-tabs {
+  gap: 7px;
+  padding-bottom: 3px;
+}
+
+.supporting-shell .workout-tabs button {
+  min-width: 132px;
+  min-height: 58px;
+  border-color: var(--line);
+  border-radius: 11px;
+  background: var(--surface-2);
+}
+
+.supporting-shell .workout-tabs button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.supporting-shell .workout-tab-icon {
+  border-radius: 8px;
+  background: var(--surface-3);
+}
+
+.supporting-shell .program-detail {
+  border-radius: 15px;
+}
+
+.supporting-shell .program-detail-head {
+  padding: 18px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.supporting-shell .program-detail-head h2 {
+  font-weight: 950;
+}
+
+.supporting-shell .exercise-list-row {
+  min-height: 62px;
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+.supporting-shell .exercise-list-row:hover {
+  background: var(--surface-2);
+}
+
+/* History */
+.supporting-shell .screen-history .metric-grid {
+  margin-bottom: 2px;
+}
+
+.supporting-shell .screen-history .session-list {
+  position: relative;
+  gap: 10px;
+  padding-left: 13px;
+}
+
+.supporting-shell .screen-history .session-list::before {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 3px;
+  width: 1px;
+  background: linear-gradient(var(--accent), var(--line) 24%, var(--line));
+  content: "";
+}
+
+.supporting-shell .screen-history .session-card {
+  position: relative;
+  padding: 16px;
+  border-radius: 14px;
+}
+
+.supporting-shell .screen-history .session-card::before {
+  position: absolute;
+  top: 26px;
+  left: -15px;
+  width: 7px;
+  height: 7px;
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 13px var(--accent-glow);
+  content: "";
+}
+
+.supporting-shell .session-badge {
+  min-width: 58px;
+  min-height: 38px;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--line));
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.supporting-shell .session-main h2 {
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.supporting-shell .session-main p,
+.supporting-shell .session-main small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.supporting-shell .session-card details {
+  border-color: var(--line);
+}
+
+.supporting-shell .session-card summary {
+  min-height: 44px;
+  color: var(--ink-2);
+}
+
+.supporting-shell .session-exercises > div {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-2);
+}
+
+.supporting-shell .delete-session {
+  min-height: 44px;
+  padding: 0 9px;
+  border-radius: 9px;
+  color: var(--danger);
+}
+
+.supporting-shell .delete-session:hover {
+  background: var(--danger-soft);
+}
+
+/* Insights */
+.supporting-shell .screen-insights .insight-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: end;
+  min-height: 185px;
+  padding: 22px;
+  overflow: hidden;
+  border-color: #303a31;
+  background:
+    radial-gradient(circle at 88% 20%, rgba(184, 247, 11, .2), transparent 18rem),
+    linear-gradient(120deg, #070a08, #101811);
+  color: #f5f8f3;
+}
+
+.supporting-shell .screen-insights .insight-hero h2 {
+  color: #f5f8f3;
+  font-size: clamp(28px, 6vw, 43px);
+  font-weight: 950;
+}
+
+.supporting-shell .screen-insights .insight-hero p {
+  max-width: 700px;
+  color: #aeb7af;
+  font-size: 11px;
+}
+
+.supporting-shell .insight-score {
+  min-width: 116px;
+  text-align: right;
+}
+
+.supporting-shell .insight-score strong {
+  color: var(--accent);
+  font-size: clamp(42px, 9vw, 68px);
+  font-weight: 950;
+  line-height: .9;
+  text-shadow: 0 0 28px var(--accent-glow);
+}
+
+.supporting-shell .insight-score small {
+  color: #aeb7af;
+}
+
+.supporting-shell .progression-panel,
+.supporting-shell .muscle-volume,
+.supporting-shell .body-panel {
+  padding: 18px;
+}
+
+.supporting-shell .progression-panel {
+  border-top: 3px solid var(--accent);
+}
+
+.supporting-shell .coach-recommendation {
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--line));
+  border-radius: 11px;
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.supporting-shell .coach-recommendation strong {
+  color: var(--accent-strong);
+  font-size: 15px;
+}
+
+.supporting-shell .exercise-trend-list {
+  border-color: var(--line);
+  border-radius: 10px;
+  background: var(--line);
+}
+
+.supporting-shell .exercise-trend-list > div {
+  background: var(--surface-2);
+}
+
+.supporting-shell .muscle-bars > div {
+  grid-template-columns: minmax(76px, 110px) 1fr 30px;
+  min-height: 31px;
+  font-size: 10px;
+}
+
+.supporting-shell .muscle-bars i {
+  height: 7px;
+  background: var(--surface-3);
+}
+
+.supporting-shell .muscle-bars b {
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  box-shadow: 0 0 11px var(--accent-glow);
+}
+
+.supporting-shell .plateau-card {
+  border-color: color-mix(in srgb, var(--warning) 42%, var(--line));
+  border-left: 3px solid var(--warning);
+  background: var(--warning-soft);
+}
+
+.supporting-shell .body-summary {
+  grid-template-columns: minmax(105px, .42fr) minmax(0, 1fr);
+  align-items: end;
+}
+
+.supporting-shell .body-summary > div:first-child strong {
+  color: var(--ink);
+  font-size: 38px;
+  font-weight: 950;
+}
+
+.supporting-shell .body-quick-form {
+  grid-template-columns: 1fr 1fr auto;
+}
+
+.supporting-shell .body-quick-form button {
+  grid-column: auto;
+  min-width: 92px;
+}
+
+.supporting-shell .body-history-mini {
+  border-color: var(--line);
+  border-radius: 10px;
+}
+
+.supporting-shell .body-history-mini > div {
+  background: var(--surface-2);
+}
+
+.supporting-shell .body-history-mini button {
+  width: 36px;
+  height: 36px;
+}
+
+/* Settings */
+.supporting-shell .screen-settings > .stack {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.supporting-shell .screen-settings .settings-section {
+  padding: 18px;
+  border-radius: 14px;
+}
+
+.supporting-shell .screen-settings .settings-section:nth-of-type(2),
+.supporting-shell .screen-settings .sync-panel {
+  grid-row: span 2;
+}
+
+.supporting-shell .settings-title {
+  gap: 10px;
+}
+
+.supporting-shell .settings-title > svg {
+  width: 35px;
+  height: 35px;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--line));
+  border-radius: 9px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.supporting-shell .settings-title h2 {
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.supporting-shell .settings-title p {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.supporting-shell .theme-picker {
+  gap: 7px;
+}
+
+.supporting-shell .theme-picker button {
+  min-height: 48px;
+  border-color: var(--line);
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+
+.supporting-shell .theme-picker button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 42%, transparent);
+}
+
+.supporting-shell .setting-rows {
+  border-color: var(--line);
+}
+
+.supporting-shell .setting-rows > div {
+  min-height: 64px;
+  border-color: var(--line);
+}
+
+.supporting-shell .setting-rows strong {
+  color: var(--ink);
+  font-size: 11px;
+}
+
+.supporting-shell .setting-rows small {
+  color: var(--muted);
+}
+
+.supporting-shell .toggle {
+  width: 48px;
+  height: 28px;
+  flex-basis: 48px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-3);
+}
+
+.supporting-shell .toggle i {
+  width: 20px;
+  height: 20px;
+  box-shadow: none;
+}
+
+.supporting-shell .toggle.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+
+.supporting-shell .toggle.active i {
+  transform: translateX(20px);
+  background: var(--accent-ink);
+}
+
+.supporting-shell .day-picker {
+  gap: 5px;
+}
+
+.supporting-shell .day-picker button {
+  min-height: 44px;
+  border-color: var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+.supporting-shell .day-picker button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.supporting-shell .backup-actions,
+.supporting-shell .sync-actions {
+  gap: 7px;
+}
+
+.supporting-shell .backup-status {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.supporting-shell .sync-panel {
+  border-top: 3px solid var(--accent);
+}
+
+.supporting-shell .screen-settings .settings-section:last-of-type {
+  border-color: color-mix(in srgb, var(--danger) 38%, var(--line));
+  background: linear-gradient(145deg, var(--danger-soft), var(--surface) 72%);
+}
+
+.supporting-shell .danger-button {
+  min-height: 44px;
+  background: var(--danger);
+}
+
+/* Common supporting states */
+.supporting-shell .empty-state {
+  min-height: 190px;
+  display: grid;
+  align-content: center;
+  border-style: dashed;
+  background: var(--surface-2);
+}
+
+.supporting-shell .modal-backdrop {
+  background: rgba(0, 0, 0, .76);
+  backdrop-filter: blur(12px);
+}
+
+.supporting-shell .modal {
+  border-color: var(--line-strong);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, .55);
+}
+
+.supporting-shell .modal > header {
+  border-color: var(--line);
+  background: var(--surface-2);
+}
+
+.supporting-shell .option-list label,
+.supporting-shell .custom-day-editor,
+.supporting-shell .editable-exercises > div {
+  border-color: var(--line);
+  background: var(--surface-2);
+}
+
+.supporting-shell .toast-message {
+  border-color: var(--accent);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+@media (max-width: 720px) {
+  .supporting-shell .screen-programs .program-selection,
+  .supporting-shell .screen-settings > .stack {
+    grid-template-columns: 1fr;
+  }
+
+  .supporting-shell .screen-settings .settings-section:nth-of-type(2),
+  .supporting-shell .screen-settings .sync-panel {
+    grid-row: auto;
+  }
+
+  .supporting-shell .screen-programs .program-overview,
+  .supporting-shell .screen-insights .insight-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .supporting-shell .screen-programs .program-overview-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .supporting-shell .screen-programs .program-overview-actions .primary-button {
+    width: 100%;
+  }
+
+  .supporting-shell .screen-today .workout-hero {
+    min-height: 235px;
+    padding: 20px;
+  }
+
+  .supporting-shell .screen-today .hero-copy h2 {
+    font-size: clamp(31px, 10vw, 43px);
+  }
+
+  .supporting-shell .metric-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .supporting-shell .metric-card {
+    min-height: 98px;
+    padding: 12px 9px;
+  }
+
+  .supporting-shell .metric-card strong {
+    font-size: clamp(17px, 5.4vw, 23px);
+  }
+
+  .supporting-shell .screen-history .session-main {
+    align-items: flex-start;
+  }
+
+  .supporting-shell .session-exercises > div {
+    grid-template-columns: 1fr;
+  }
+
+  .supporting-shell .screen-insights .insight-score {
+    text-align: left;
+  }
+
+  .supporting-shell .body-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .supporting-shell .body-quick-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .supporting-shell .body-quick-form button {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 410px) {
+  .supporting-shell .page-content {
+    padding-inline: 10px;
+  }
+
+  .supporting-shell .app-header {
+    padding-inline: 12px;
+  }
+
+  .supporting-shell .page-heading h1 {
+    font-size: 29px;
+  }
+
+  .supporting-shell .metric-grid {
+    gap: 5px;
+  }
+
+  .supporting-shell .metric-card {
+    padding-inline: 8px;
+  }
+
+  .supporting-shell .metric-card small,
+  .supporting-shell .metric-card span {
+    font-size: 7.5px;
+  }
+
+  .supporting-shell .frequency-switch {
+    gap: 5px;
+  }
+
+  .supporting-shell .frequency-switch button {
+    min-height: 67px;
+  }
+
+  .supporting-shell .screen-programs .program-selection {
+    grid-template-columns: 1fr;
+  }
+
+  .supporting-shell .program-actions > * {
+    flex: 1 1 140px;
+  }
+
+  .supporting-shell .theme-picker button {
+    flex-direction: column;
+    gap: 3px;
+    font-size: 9px;
+  }
+}
+
+@media (min-width: 900px) {
+  .supporting-shell {
+    display: grid;
+    grid-template-columns: 238px minmax(0, 1fr);
+  }
+
+  .supporting-shell .desktop-rail {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    min-height: 100vh;
+    max-height: 100vh;
+    flex-direction: column;
+    padding: 22px 16px 18px;
+    border-right: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    backdrop-filter: blur(24px);
+  }
+
+  html[data-theme="dark"] .supporting-shell .desktop-rail {
+    background:
+      linear-gradient(180deg, rgba(184, 247, 11, .028), transparent 32%),
+      #080b09;
+  }
+
+  .supporting-shell .desktop-rail .brand {
+    padding: 4px 5px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .supporting-shell .rail-nav {
+    display: grid;
+    gap: 5px;
+    margin-top: 20px;
+  }
+
+  .supporting-shell .rail-nav button,
+  .supporting-shell .rail-theme {
+    position: relative;
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    gap: 11px;
+    padding: 0 13px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+    text-align: left;
+  }
+
+  .supporting-shell .rail-nav button::before {
+    position: absolute;
+    top: 11px;
+    bottom: 11px;
+    left: -1px;
+    width: 2px;
+    border-radius: 999px;
+    background: transparent;
+    content: "";
+  }
+
+  .supporting-shell .rail-nav button:hover,
+  .supporting-shell .rail-theme:hover {
+    border-color: var(--line);
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+
+  .supporting-shell .rail-nav button.active {
+    border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+  }
+
+  .supporting-shell .rail-nav button.active::before {
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow);
+  }
+
+  .supporting-shell .rail-theme {
+    margin-top: auto;
+    border-color: var(--line);
+  }
+
+  .supporting-shell .mobile-brand,
+  .supporting-shell .bottom-nav {
+    display: none;
+  }
+
+  .supporting-shell .app-frame {
+    min-width: 0;
+  }
+
+  .supporting-shell .app-header {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 29px 30px 17px;
+  }
+
+  .supporting-shell .page-heading {
+    margin-top: 0;
+  }
+
+  .supporting-shell .page-heading h1 {
+    font-size: 38px;
+  }
+
+  .supporting-shell .page-content {
+    padding: 0 30px 54px;
+  }
+
+  .supporting-shell .screen-today .workout-hero {
+    min-height: 300px;
+    padding: 34px;
+  }
+
+  .supporting-shell .screen-today .hero-visual {
+    display: grid;
+    width: 132px;
+    height: 132px;
+    border-color: rgba(184, 247, 11, .19);
+    border-radius: 24px;
+    background: rgba(184, 247, 11, .06);
+  }
+
+  .supporting-shell .screen-today .hero-copy {
+    max-width: calc(100% - 170px);
+  }
+
+  .supporting-shell .screen-today .weekly-card,
+  .supporting-shell .screen-today .weekly-coach,
+  .supporting-shell .screen-today .program-quick {
+    padding: 21px;
+  }
+
+  .supporting-shell .screen-programs .program-selection {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .supporting-shell .screen-history .session-card {
+    padding: 18px 20px;
+  }
+
+  .supporting-shell .screen-insights > .stack,
+  .supporting-shell .screen-today > .stack {
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1220px) {
+  .supporting-shell {
+    grid-template-columns: 252px minmax(0, 1fr);
+  }
+
+  .supporting-shell .screen-today .metric-grid,
+  .supporting-shell .screen-history .metric-grid,
+  .supporting-shell .screen-insights .metric-grid {
+    gap: 10px;
+  }
+
+  .supporting-shell .screen-settings > .stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .supporting-shell *,
+  .supporting-shell *::before,
+  .supporting-shell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+  }
+}
