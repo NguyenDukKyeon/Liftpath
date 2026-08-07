@@ -7,4 +7,5 @@ export interface SessionRepository {
   get(id: EntityId): Promise<TrainingSession | undefined>;
   getActive(): Promise<TrainingSession | undefined>;
   listSets(sessionId: EntityId): Promise<CompletedSet[]>;
+  saveSet(set: CompletedSet): Promise<void>;
 }

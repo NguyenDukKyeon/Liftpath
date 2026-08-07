@@ -52,5 +52,11 @@ export function createSessionRepository(
         (left, right) => left.setOrdinal - right.setOrdinal || left.id.localeCompare(right.id),
       );
     },
+
+    async saveSet(set: CompletedSet): Promise<void> {
+      await database.transaction(["sets"], "readwrite", async (tx) => {
+        await tx.put("sets", set);
+      });
+    },
   };
 }
