@@ -86,6 +86,21 @@ test("active workout prevents starting a second session", async () => {
   assert.equal(sessions.createCount, 0);
 });
 
+test("concurrent workout starts commit exactly one active session", async () => {
+  const sessions = new MemorySessions();
+  let nextId = 0;
+  const concurrentIds = { next: (prefix: string) => `${prefix}-${++nextId}` };
+
+  const outcomes = await Promise.allSettled([
+    startWorkout({ programVersion: program(), sessionKey: "upper-a", sessions, ids: concurrentIds, clock }),
+    startWorkout({ programVersion: program(), sessionKey: "upper-a", sessions, ids: concurrentIds, clock }),
+  ]);
+
+  assert.equal(outcomes.filter((outcome) => outcome.status === "fulfilled").length, 1);
+  assert.equal(outcomes.filter((outcome) => outcome.status === "rejected").length, 1);
+  assert.equal(sessions.createCount, 1);
+});
+
 test("active workout resumes with already persisted sets", async () => {
   const sessions = new MemorySessions();
   sessions.active = activeSession();
@@ -131,6 +146,30 @@ test("set completion rejects when persistence rejects", async () => {
     }),
   );
   assert.equal(sessions.sets.length, 0);
+});
+
+test("concurrent completion of one logical set commits exactly once", async () => {
+  const sessions = new MemorySessions();
+  sessions.active = activeSession();
+  let nextId = 0;
+  const concurrentIds = { next: (prefix: string) => `${prefix}-${++nextId}` };
+  const request = {
+    sessionId: "session-active",
+    exerciseId: "exercise-1",
+    setOrdinal: 1,
+    loadKg: 20,
+    reps: 10,
+    rir: 2,
+  } as const;
+
+  const outcomes = await Promise.allSettled([
+    completeSet({ input: request, sessions, ids: concurrentIds, clock }),
+    completeSet({ input: request, sessions, ids: concurrentIds, clock }),
+  ]);
+
+  assert.equal(outcomes.filter((outcome) => outcome.status === "fulfilled").length, 1);
+  assert.equal(outcomes.filter((outcome) => outcome.status === "rejected").length, 1);
+  assert.equal(sessions.sets.length, 1);
 });
 
 test("workout completion rejects a non-active session", async () => {
