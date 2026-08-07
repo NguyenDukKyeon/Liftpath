@@ -40,3 +40,31 @@ test("rolls back writes when transaction work throws", async ({ page }) => {
 
   expect(result).toEqual({ caught: true, firstExists: false, secondExists: false });
 });
+
+test("backup round-trip restores V5 authoritative records after deleting only V5 storage", async ({ page }) => {
+  await page.goto("/?v5=1&diagnostics=1");
+
+  const result = await page.evaluate(async () => {
+    type Diagnostics = {
+      verifyBackupRoundTrip(): Promise<{
+        restoredProfileIds: string[];
+        restoredSessionIds: string[];
+        restoredSetIds: string[];
+        recoverySnapshotCount: number;
+      }>;
+    };
+    const diagnostics = (window as typeof window & { __liftpathV5Diagnostics?: Diagnostics })
+      .__liftpathV5Diagnostics;
+    if (!diagnostics?.verifyBackupRoundTrip) {
+      throw new Error("V5 backup round-trip diagnostics unavailable");
+    }
+    return diagnostics.verifyBackupRoundTrip();
+  });
+
+  expect(result).toEqual({
+    restoredProfileIds: ["profile-roundtrip-1"],
+    restoredSessionIds: ["session-roundtrip-1", "session-roundtrip-2"],
+    restoredSetIds: ["set-roundtrip-1", "set-roundtrip-2"],
+    recoverySnapshotCount: 1,
+  });
+});
