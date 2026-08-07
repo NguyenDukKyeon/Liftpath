@@ -5,6 +5,8 @@ import type { SpecializationId } from "../specializations.js";
 import { getGoalPolicy, type MusclePriorityMap } from "./goal-policy.js";
 import { applyVShapePolicy } from "./v-shape.js";
 
+export type { MusclePriorityMap } from "./goal-policy.js";
+
 export interface SpecializationPolicy {
   id: SpecializationId;
   version: PolicyVersion;
