@@ -42,6 +42,10 @@ class MemoryDatabase implements V5Database {
         this.mutationCount += 1;
         this.stores.get(store)?.delete(id);
       },
+      clear: async (store) => {
+        this.mutationCount += 1;
+        this.stores.set(store, new Map());
+      },
     };
     void stores;
     return work(tx);
