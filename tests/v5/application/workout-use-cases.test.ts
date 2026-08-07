@@ -6,7 +6,7 @@ import { completeWorkout } from "../../../src/v5/application/workouts/complete-w
 import { startWorkout } from "../../../src/v5/application/workouts/start-workout.js";
 import { resumeWorkout } from "../../../src/v5/application/workouts/resume-workout.js";
 import { LiftPathV5Error } from "../../../src/v5/domain/common/errors.js";
-import type { EntityId } from "../../../src/v5/domain/common/types.js";
+import type { EntityId, ISODateTime } from "../../../src/v5/domain/common/types.js";
 import type { ProgramVersion } from "../../../src/v5/domain/programming/program.js";
 import type { CompletedSet } from "../../../src/v5/domain/training/set.js";
 import type { TrainingSession } from "../../../src/v5/domain/training/session.js";
@@ -34,6 +34,25 @@ class MemorySessions implements SessionRepository {
   async update(session: TrainingSession): Promise<void> {
     this.updateCount += 1;
     this.active = session;
+  }
+
+  async completeIfActive(
+    sessionId: EntityId,
+    completedAt: ISODateTime,
+  ): Promise<TrainingSession> {
+    if (this.active?.id !== sessionId || this.active.status !== "active") {
+      throw new LiftPathV5Error("VALIDATION_ERROR", "workout requires active session");
+    }
+    const completed: TrainingSession = {
+      ...this.active,
+      status: "completed",
+      completedAt,
+      updatedAt: completedAt,
+      revision: this.active.revision + 1,
+    };
+    this.updateCount += 1;
+    this.active = completed;
+    return completed;
   }
 
   async get(id: EntityId): Promise<TrainingSession | undefined> {
