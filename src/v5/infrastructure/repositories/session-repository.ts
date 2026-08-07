@@ -84,7 +84,15 @@ export function createSessionRepository(
     },
 
     async saveSet(set: CompletedSet): Promise<void> {
-      await database.transaction(["sets"], "readwrite", async (tx) => {
+      await database.transaction(["sessions", "sets"], "readwrite", async (tx) => {
+        const session = await tx.get<TrainingSession>("sessions", set.sessionId);
+        if (!session || session.status !== "active") {
+          throw new LiftPathV5Error(
+            "VALIDATION_ERROR",
+            "Set completion requires an active workout session",
+          );
+        }
+
         const sessionSets = await tx.getAllByIndex<CompletedSet>(
           "sets",
           SET_SESSION_INDEX,
