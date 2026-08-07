@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type {
+  RecoverySnapshotRecord,
+} from "../../../src/v5/application/backup/backup-types.js";
+import type {
   V5Database,
   V5StoreName,
   V5Transaction,
@@ -43,6 +46,10 @@ class MemoryDatabase implements V5Database {
       },
       get: async <R>(store: V5StoreName, id: EntityId) =>
         structuredClone(this.stores.get(store)?.get(id)) as R | undefined,
+      getAll: async <R>(store: V5StoreName) =>
+        [...(this.stores.get(store)?.values() ?? [])].map((storedRecord) =>
+          structuredClone(storedRecord) as R,
+        ),
       delete: async (store, id) => {
         this.mutationCount += 1;
         this.stores.get(store)?.delete(id);
@@ -58,8 +65,8 @@ class MemoryDatabase implements V5Database {
 
   async getAll<T>(store: V5StoreName): Promise<T[]> {
     this.externalGetAllCount += 1;
-    return [...(this.stores.get(store)?.values() ?? [])].map((record) =>
-      structuredClone(record) as T,
+    return [...(this.stores.get(store)?.values() ?? [])].map((storedRecord) =>
+      structuredClone(storedRecord) as T,
     );
   }
 }
@@ -148,12 +155,9 @@ test("destructive import snapshots current V5 data before replacement", async ()
     ["session-imported"],
   );
 
-  const snapshots = await target.getAll<VersionedRecord & { backupText: string }>(
-    "recoverySnapshots",
-  );
+  const snapshots = await target.getAll<RecoverySnapshotRecord>("recoverySnapshots");
   assert.equal(snapshots.length, 1);
-  const oldPreview = await previewBackup(snapshots[0].backupText);
-  assert.equal(oldPreview.totalRecords, 2);
-  assert.equal(oldPreview.manifest.recordCounts.profiles, 1);
-  assert.equal(oldPreview.manifest.recordCounts.sessions, 1);
+  assert.equal(snapshots[0].schemaVersion, 1);
+  assert.deepEqual(snapshots[0].records.profiles.map((item) => item.id), ["profile-old"]);
+  assert.deepEqual(snapshots[0].records.sessions.map((item) => item.id), ["session-old"]);
 });
