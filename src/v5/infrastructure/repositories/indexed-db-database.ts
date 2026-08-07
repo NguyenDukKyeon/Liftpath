@@ -21,6 +21,10 @@ class IndexedDbTransaction implements V5Transaction {
   async delete(store: V5StoreName, id: EntityId): Promise<void> {
     await requestToPromise(this.transaction.objectStore(store).delete(id));
   }
+
+  async clear(store: V5StoreName): Promise<void> {
+    await requestToPromise(this.transaction.objectStore(store).clear());
+  }
 }
 
 export function createIndexedDbDatabase(
