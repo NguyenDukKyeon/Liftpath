@@ -12,7 +12,8 @@ test("V4 stays default and V5 requires preview flag", async ({ page }) => {
 test("opens isolated V5 IndexedDB schema", async ({ page }) => {
   await page.goto("/?v5=1");
   const info = await page.evaluate(async () => {
-    const mod = await import("/src/v5/infrastructure/db/open-db.ts");
+    const moduleUrl = new URL("/src/v5/infrastructure/db/open-db.ts", window.location.origin).href;
+    const mod = await import(/* @vite-ignore */ moduleUrl);
     const db = await mod.openLiftPathV5Db();
     const result = { name: db.name, stores: [...db.objectStoreNames] };
     db.close();
