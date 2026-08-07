@@ -63,13 +63,19 @@ Implement these plans in order. Each plan ends in a working, independently revie
    - Accept/Modify/Skip and program-version changes.
    - Pain/deload safeguards and audit trail.
 
-5. `2026-08-07-liftpath-5-product-ux.md`
+5. `2026-08-07-liftpath-5-training-lifecycle.md`
+   - Persisted readiness as training-state input.
+   - Stable training-block/mesocycle records.
+   - End-of-block review without automatic program replacement.
+   - User-initiated goal/specialization transitions that preserve structure/history.
+
+6. `2026-08-07-liftpath-5-product-ux.md`
    - Today / Program / Progress / History IA.
    - Coach decision queue.
    - Focused Workout Mode and readiness.
    - Recap, substitutions, progressive disclosure, responsive design.
 
-6. `2026-08-07-liftpath-5-hardening-release.md`
+7. `2026-08-07-liftpath-5-hardening-release.md`
    - Golden Coach scenarios and invariant/property-style coverage.
    - Corruption/error injection and backup recovery.
    - Large-history performance gates.
@@ -95,6 +101,7 @@ src/v5/
     programs/
     coaching/
     backup/
+    recovery/
   infrastructure/
     db/
     repositories/
@@ -169,7 +176,7 @@ Before starting the next plan:
 
 ## Final Product Gate
 
-V5 cannot become the default until all six plans are complete and the final release plan proves:
+V5 cannot become the default until all seven plans are complete and the final release plan proves:
 
 ```text
 Data integrity          PASS
@@ -179,6 +186,7 @@ Corruption recovery     PASS
 Coach determinism       PASS
 V-Shape golden cases    PASS
 Pain safety invariant   PASS
+Training lifecycle      PASS
 Core mobile E2E         PASS
 Accessibility gate      PASS
 Offline core flow       PASS
