@@ -16,6 +16,7 @@ export interface V5Transaction {
   put<T extends VersionedRecord>(store: V5StoreName, record: T): Promise<void>;
   get<T>(store: V5StoreName, id: EntityId): Promise<T | undefined>;
   delete(store: V5StoreName, id: EntityId): Promise<void>;
+  clear(store: V5StoreName): Promise<void>;
 }
 
 export interface V5Database {
