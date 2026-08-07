@@ -2,6 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CATALOG_SEED } from "../../../src/v5/domain/exercises/catalog-seed.js";
 import { validateExerciseCatalog } from "../../../src/v5/domain/exercises/catalog.js";
+import {
+  BEGINNER_SPECIALIZATION_SET_CEILING,
+  INDIRECT_SET_CREDIT,
+  PROGRAMMING_POLICY_VERSION,
+  WORKLOAD_BANDS,
+} from "../../../src/v5/domain/programming/policy-constants.js";
 import { validateTrainingProfileDraft } from "../../../src/v5/domain/programming/profile.js";
 
 const baseConstraints = {
@@ -68,4 +74,25 @@ test("catalog seed has unique stable metadata and valid rep ranges", () => {
       ),
     ),
   );
+});
+
+test("policy constants are ordered, finite, versioned, and conservatively bounded for beginners", () => {
+  assert.match(PROGRAMMING_POLICY_VERSION, /^\d+\.\d+\.\d+$/);
+  assert.ok(INDIRECT_SET_CREDIT >= 0 && INDIRECT_SET_CREDIT <= 1);
+
+  for (const goalBands of Object.values(WORKLOAD_BANDS)) {
+    for (const [level, priorityBands] of Object.entries(goalBands)) {
+      for (const [priority, band] of Object.entries(priorityBands)) {
+        assert.ok(Number.isFinite(band.minDirectEquivalentSets));
+        assert.ok(Number.isFinite(band.targetDirectEquivalentSets));
+        assert.ok(Number.isFinite(band.maxDirectEquivalentSets));
+        assert.ok(band.minDirectEquivalentSets >= 0);
+        assert.ok(band.minDirectEquivalentSets <= band.targetDirectEquivalentSets);
+        assert.ok(band.targetDirectEquivalentSets <= band.maxDirectEquivalentSets);
+        if (level === "beginner" && priority === "specialization") {
+          assert.ok(band.maxDirectEquivalentSets <= BEGINNER_SPECIALIZATION_SET_CEILING);
+        }
+      }
+    }
+  }
 });
