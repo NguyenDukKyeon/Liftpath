@@ -15,6 +15,10 @@ import {
   previewBackup,
 } from "../../../src/v5/application/backup/import-backup.js";
 import { LiftPathV5Error } from "../../../src/v5/domain/common/errors.js";
+import {
+  emptyBackupRecords,
+  encodeBackupBundle,
+} from "../../../src/v5/infrastructure/backup/json-backup-codec.js";
 
 class MemoryDatabase implements V5Database {
   readonly stores = new Map<V5StoreName, Map<EntityId, VersionedRecord>>();
@@ -98,6 +102,18 @@ test("tampering with an authoritative record invalidates the backup checksum", a
 
   await assert.rejects(
     () => previewBackup(JSON.stringify(tampered)),
+    (error: unknown) =>
+      error instanceof LiftPathV5Error && error.code === "BACKUP_ERROR",
+  );
+});
+
+test("backup preview rejects duplicate ids within one store before import", async () => {
+  const records = emptyBackupRecords();
+  records.sessions = [record("session-duplicate"), { ...record("session-duplicate"), revision: 2 }];
+  const encoded = await encodeBackupBundle(fixedClock.now(), records);
+
+  await assert.rejects(
+    () => previewBackup(encoded),
     (error: unknown) =>
       error instanceof LiftPathV5Error && error.code === "BACKUP_ERROR",
   );
