@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   loadStorageHealth as loadDefaultStorageHealth,
   type StorageHealth,
@@ -9,6 +9,7 @@ import { installPreviewDiagnostics } from "./preview-diagnostics.js";
 
 interface V5PreviewAppProps {
   loadStorageHealth?: StorageHealthLoader;
+  workoutMode?: ReactNode;
 }
 
 function storageFailure(error: unknown): StorageHealth {
@@ -18,6 +19,7 @@ function storageFailure(error: unknown): StorageHealth {
 
 export function V5PreviewApp({
   loadStorageHealth = loadDefaultStorageHealth,
+  workoutMode,
 }: V5PreviewAppProps = {}) {
   const [storageHealth, setStorageHealth] = useState<StorageHealth | null>(null);
   const [storageAttempt, setStorageAttempt] = useState(0);
@@ -59,11 +61,14 @@ export function V5PreviewApp({
       )}
 
       {databaseInfo && (
-        <output
-          data-testid="v5-db-info"
-          data-db-name={databaseInfo.name}
-          data-db-stores={databaseInfo.stores.join(",")}
-        />
+        <>
+          <output
+            data-testid="v5-db-info"
+            data-db-name={databaseInfo.name}
+            data-db-stores={databaseInfo.stores.join(",")}
+          />
+          {workoutMode}
+        </>
       )}
     </main>
   );
