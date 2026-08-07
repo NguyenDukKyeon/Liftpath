@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CATALOG_SEED } from "../../../src/v5/domain/exercises/catalog-seed.js";
 import { validateExerciseCatalog } from "../../../src/v5/domain/exercises/catalog.js";
+import { createInitialPrescription } from "../../../src/v5/domain/programming/prescription-engine.js";
 import {
   BEGINNER_SPECIALIZATION_SET_CEILING,
   INDIRECT_SET_CREDIT,
@@ -122,4 +123,45 @@ test("structure proposals return deterministic 2-3 options within the exact day 
         (first[index - 1].score === first[index].score && first[index - 1].id < first[index].id),
     );
   }
+});
+
+test("reference prescription is deterministic, equipment-safe, balanced, and V-Shape biased", () => {
+  const profile = {
+    id: "profile-reference",
+    createdAt: "2026-08-08T00:00:00.000Z",
+    updatedAt: "2026-08-08T00:00:00.000Z",
+    revision: 1,
+    level: "beginner",
+    goal: "hypertrophy",
+    primarySpecialization: "v_shape",
+    constraints: {
+      daysPerWeek: 4,
+      sessionMinutes: 60,
+      equipment: ["barbell", "rack", "bench", "dumbbell", "cable", "machine"],
+      dislikedExerciseIds: [],
+      restrictedMovementPatterns: [],
+    },
+  } as const;
+  const structure = rankStructureProposals(profile)[0];
+  const input = { profile, structure, catalog: [...CATALOG_SEED] };
+
+  const first = createInitialPrescription(input);
+  const second = createInitialPrescription(input);
+  const catalogById = new Map(CATALOG_SEED.map((exercise) => [exercise.id, exercise]));
+
+  assert.deepEqual(first, second);
+  assert.equal(first.sessions.length, 4);
+  assert.ok(first.sessions.every((session) => session.exercises.length > 0 && session.exercises.length <= 6));
+  for (const session of first.sessions) {
+    for (const prescribed of session.exercises) {
+      const exercise = catalogById.get(prescribed.exerciseId);
+      assert.ok(exercise);
+      assert.ok(exercise.equipment.every((item) => profile.constraints.equipment.includes(item as never)));
+    }
+  }
+  assert.ok(first.workloadByMuscle.lats > first.workloadByMuscle.chest);
+  assert.ok(first.workloadByMuscle.side_delts > first.workloadByMuscle.chest);
+  assert.ok(first.workloadByMuscle.quads > 0);
+  assert.ok(first.workloadByMuscle.hamstrings > 0);
+  assert.ok(first.workloadByMuscle.glutes > 0);
 });
