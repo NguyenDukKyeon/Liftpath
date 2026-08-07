@@ -1,1 +1,0 @@
-This file intentionally left minimal. Canonical self-review is in `2026-08-07-liftpath-5-remake-design-self-review.md`.
