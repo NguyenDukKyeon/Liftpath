@@ -15,6 +15,7 @@ export type V5StoreName =
 export interface V5Transaction {
   put<T extends VersionedRecord>(store: V5StoreName, record: T): Promise<void>;
   get<T>(store: V5StoreName, id: EntityId): Promise<T | undefined>;
+  getAll<T>(store: V5StoreName): Promise<T[]>;
   delete(store: V5StoreName, id: EntityId): Promise<void>;
   clear(store: V5StoreName): Promise<void>;
 }
