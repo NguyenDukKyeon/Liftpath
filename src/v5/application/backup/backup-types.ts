@@ -48,5 +48,6 @@ export interface UnsignedBackupPayload {
 
 export interface RecoverySnapshotRecord extends VersionedRecord {
   kind: "pre-import";
-  backupText: string;
+  schemaVersion: typeof BACKUP_SCHEMA_VERSION;
+  records: BackupRecords;
 }
