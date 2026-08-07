@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { V5PreviewApp } from "../../../src/v5/app/V5PreviewApp";
+import { isPreviewDiagnosticsAllowed } from "../../../src/v5/app/preview-diagnostics";
 import { LiftPathV5Error } from "../../../src/v5/domain/common/errors";
 import { selectRuntime } from "../../../src/v5/app/select-runtime";
 
@@ -10,6 +11,15 @@ describe("selectRuntime", () => {
     expect(selectRuntime("")).toBe("v4");
     expect(selectRuntime("?v5=1")).toBe("v5");
     expect(selectRuntime("?v5=0")).toBe("v4");
+  });
+});
+
+describe("preview diagnostics", () => {
+  it("allows destructive diagnostics only on local preview hosts", () => {
+    expect(isPreviewDiagnosticsAllowed("?v5=1&diagnostics=1", "127.0.0.1")).toBe(true);
+    expect(isPreviewDiagnosticsAllowed("?v5=1&diagnostics=1", "localhost")).toBe(true);
+    expect(isPreviewDiagnosticsAllowed("?v5=1&diagnostics=1", "liftpath-seven.vercel.app")).toBe(false);
+    expect(isPreviewDiagnosticsAllowed("?v5=1", "127.0.0.1")).toBe(false);
   });
 });
 
