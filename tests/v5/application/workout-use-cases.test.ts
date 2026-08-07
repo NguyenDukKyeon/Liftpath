@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { SessionRepository } from "../../../src/v5/application/ports/session-repository.js";
+import { completeSet } from "../../../src/v5/application/workouts/complete-set.js";
 import { startWorkout } from "../../../src/v5/application/workouts/start-workout.js";
 import { resumeWorkout } from "../../../src/v5/application/workouts/resume-workout.js";
 import { LiftPathV5Error } from "../../../src/v5/domain/common/errors.js";
@@ -13,6 +14,7 @@ class MemorySessions implements SessionRepository {
   active: TrainingSession | undefined;
   sets: CompletedSet[] = [];
   createCount = 0;
+  rejectSetWrites = false;
 
   async create(session: TrainingSession): Promise<void> {
     this.createCount += 1;
@@ -29,6 +31,11 @@ class MemorySessions implements SessionRepository {
 
   async listSets(sessionId: EntityId): Promise<CompletedSet[]> {
     return this.sets.filter((set) => set.sessionId === sessionId);
+  }
+
+  async saveSet(set: CompletedSet): Promise<void> {
+    if (this.rejectSetWrites) throw new Error("storage unavailable");
+    this.sets.push(set);
   }
 }
 
@@ -94,4 +101,27 @@ test("active workout resumes with already persisted sets", async () => {
   const resumed = await resumeWorkout(sessions);
   assert.equal(resumed?.session.id, "session-active");
   assert.deepEqual(resumed?.sets.map((set) => set.id), ["set-1"]);
+});
+
+test("set completion rejects when persistence rejects", async () => {
+  const sessions = new MemorySessions();
+  sessions.active = activeSession();
+  sessions.rejectSetWrites = true;
+
+  await assert.rejects(() =>
+    completeSet({
+      input: {
+        sessionId: "session-active",
+        exerciseId: "exercise-1",
+        setOrdinal: 1,
+        loadKg: 20,
+        reps: 10,
+        rir: 2,
+      },
+      sessions,
+      ids,
+      clock,
+    }),
+  );
+  assert.equal(sessions.sets.length, 0);
 });
