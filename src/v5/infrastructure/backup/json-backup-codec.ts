@@ -97,6 +97,16 @@ export async function encodeBackupBundle(
   return canonicalStringify(bundle);
 }
 
+function assertUniqueRecordIds(store: string, records: VersionedRecord[]): void {
+  const seen = new Set<string>();
+  for (const record of records) {
+    if (seen.has(record.id)) {
+      throw backupError(`Backup store ${store} contains duplicate id ${record.id}`);
+    }
+    seen.add(record.id);
+  }
+}
+
 function parseRecords(value: unknown): BackupRecords {
   if (!isRecord(value)) throw backupError("Backup records are missing or invalid");
 
@@ -106,7 +116,9 @@ function parseRecords(value: unknown): BackupRecords {
     if (!Array.isArray(rawRecords) || !rawRecords.every(isVersionedRecord)) {
       throw backupError(`Backup store ${store} contains invalid records`);
     }
-    records[store] = rawRecords.map((record) => structuredClone(record)) as VersionedRecord[];
+    const storeRecords = rawRecords.map((record) => structuredClone(record)) as VersionedRecord[];
+    assertUniqueRecordIds(store, storeRecords);
+    records[store] = storeRecords;
   }
   return canonicalRecords(records);
 }
