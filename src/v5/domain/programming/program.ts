@@ -1,4 +1,4 @@
-import type { EntityId, VersionedRecord } from "../common/types.js";
+import type { EntityId, PolicyVersion, VersionedRecord } from "../common/types.js";
 
 export interface PrescribedSet {
   ordinal: number;
@@ -24,4 +24,8 @@ export interface ProgramVersion extends VersionedRecord {
   versionNumber: number;
   name: string;
   sessions: ProgramSession[];
+  profileId?: EntityId;
+  policyVersion?: PolicyVersion;
+  structureId?: string;
+  rationale?: string[];
 }
