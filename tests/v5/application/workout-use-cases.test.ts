@@ -50,6 +50,9 @@ class MemorySessions implements SessionRepository {
 
   async saveSet(set: CompletedSet): Promise<void> {
     if (this.rejectSetWrites) throw new Error("storage unavailable");
+    if (this.active?.id !== set.sessionId || this.active.status !== "active") {
+      throw new LiftPathV5Error("VALIDATION_ERROR", "set requires active session");
+    }
     if (
       this.sets.some(
         (candidate) =>
