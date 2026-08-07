@@ -98,6 +98,7 @@ function ChoiceButton<T extends string>({
     <button
       type="button"
       className="v5-onboarding-choice"
+      aria-label={choice.label}
       aria-pressed={selected}
       onClick={() => onChoose(choice.value)}
     >
@@ -279,6 +280,7 @@ export function OnboardingFlow({ catalog, onActivate }: OnboardingFlowProps) {
                   type="button"
                   className="v5-onboarding-choice"
                   key={preset.id}
+                  aria-label={preset.label}
                   aria-pressed={equipmentPresetId === preset.id}
                   onClick={() => setEquipmentPresetId(preset.id)}
                 >
