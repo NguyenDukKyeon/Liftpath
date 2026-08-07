@@ -80,5 +80,24 @@ export function createIndexedDbDatabase(
         db.close();
       }
     },
+
+    async getAllByIndex<T>(
+      store: V5StoreName,
+      indexName: string,
+      key: IDBValidKey | IDBKeyRange,
+    ): Promise<T[]> {
+      const db = await openDb();
+      try {
+        const nativeTransaction = db.transaction([store], "readonly");
+        const completion = transactionDone(nativeTransaction);
+        const records = await requestToPromise(
+          nativeTransaction.objectStore(store).index(indexName).getAll(key),
+        );
+        await completion;
+        return records as T[];
+      } finally {
+        db.close();
+      }
+    },
   };
 }

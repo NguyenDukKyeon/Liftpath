@@ -27,4 +27,9 @@ export interface V5Database {
     work: (tx: V5Transaction) => Promise<T>,
   ): Promise<T>;
   getAll<T>(store: V5StoreName): Promise<T[]>;
+  getAllByIndex?<T>(
+    store: V5StoreName,
+    indexName: string,
+    key: IDBValidKey | IDBKeyRange,
+  ): Promise<T[]>;
 }
