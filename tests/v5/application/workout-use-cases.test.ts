@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { SessionRepository } from "../../../src/v5/application/ports/session-repository.js";
 import { completeSet } from "../../../src/v5/application/workouts/complete-set.js";
+import { completeWorkout } from "../../../src/v5/application/workouts/complete-workout.js";
 import { startWorkout } from "../../../src/v5/application/workouts/start-workout.js";
 import { resumeWorkout } from "../../../src/v5/application/workouts/resume-workout.js";
 import { LiftPathV5Error } from "../../../src/v5/domain/common/errors.js";
@@ -14,10 +15,16 @@ class MemorySessions implements SessionRepository {
   active: TrainingSession | undefined;
   sets: CompletedSet[] = [];
   createCount = 0;
+  updateCount = 0;
   rejectSetWrites = false;
 
   async create(session: TrainingSession): Promise<void> {
     this.createCount += 1;
+    this.active = session;
+  }
+
+  async update(session: TrainingSession): Promise<void> {
+    this.updateCount += 1;
     this.active = session;
   }
 
@@ -26,7 +33,7 @@ class MemorySessions implements SessionRepository {
   }
 
   async getActive(): Promise<TrainingSession | undefined> {
-    return this.active;
+    return this.active?.status === "active" ? this.active : undefined;
   }
 
   async listSets(sessionId: EntityId): Promise<CompletedSet[]> {
@@ -124,4 +131,35 @@ test("set completion rejects when persistence rejects", async () => {
     }),
   );
   assert.equal(sessions.sets.length, 0);
+});
+
+test("workout completion rejects a non-active session", async () => {
+  const sessions = new MemorySessions();
+  sessions.active = {
+    ...activeSession(),
+    status: "completed",
+    completedAt: "2026-08-07T08:09:00.000Z",
+  };
+
+  await assert.rejects(
+    () => completeWorkout("session-active", sessions, clock),
+    (error: unknown) =>
+      error instanceof LiftPathV5Error && error.code === "VALIDATION_ERROR",
+  );
+  assert.equal(sessions.updateCount, 0);
+});
+
+test("workout completion persists status and completedAt before returning", async () => {
+  const sessions = new MemorySessions();
+  sessions.active = activeSession();
+
+  const completed = await completeWorkout("session-active", sessions, clock);
+
+  assert.equal(completed.status, "completed");
+  assert.equal(completed.completedAt, clock.now());
+  assert.equal(completed.updatedAt, clock.now());
+  assert.equal(completed.revision, 2);
+  assert.equal(sessions.updateCount, 1);
+  assert.equal(sessions.active?.status, "completed");
+  assert.equal(await sessions.getActive(), undefined);
 });

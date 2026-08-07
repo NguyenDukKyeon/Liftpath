@@ -80,3 +80,38 @@ test("set survives reload after committed completion", async ({ page }) => {
 
   expect(restored).toEqual(committed);
 });
+
+test("active workout resumes after reload and completed workout stays completed", async ({ page }) => {
+  await page.goto("/?v5=1");
+
+  await expect(page.getByRole("button", { name: "Start workout" })).toBeVisible();
+  await page.getByRole("button", { name: "Start workout" }).click();
+  await expect(page.getByText("0 / 4 sets complete")).toBeVisible();
+
+  const sessionId = (await page.getByTestId("v5-active-session-id").textContent())?.trim();
+  expect(sessionId).toBeTruthy();
+
+  for (const completedCount of [1, 2]) {
+    await page.getByRole("button", { name: "Complete set" }).click();
+    await expect(page.getByText(`${completedCount} / 4 sets complete`)).toBeVisible();
+  }
+
+  await page.reload();
+
+  await expect(page.getByTestId("v5-active-session-id")).toHaveText(sessionId!);
+  await expect(page.getByText("2 / 4 sets complete")).toBeVisible();
+
+  for (const completedCount of [3, 4]) {
+    await page.getByRole("button", { name: "Complete set" }).click();
+    await expect(page.getByText(`${completedCount} / 4 sets complete`)).toBeVisible();
+  }
+
+  await page.getByRole("button", { name: "Complete workout" }).click();
+  await expect(page.getByText("Workout completed")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start workout" })).toBeVisible();
+
+  await page.reload();
+
+  await expect(page.getByRole("button", { name: "Start workout" })).toBeVisible();
+  await expect(page.getByTestId("v5-active-session-id")).toHaveCount(0);
+});
