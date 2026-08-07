@@ -220,6 +220,21 @@ test("set cannot commit after concurrent workout completion wins", async () => {
   assert.equal(sessions.active?.status, "completed");
 });
 
+test("concurrent workout completion commits exactly once", async () => {
+  const sessions = new MemorySessions();
+  sessions.active = activeSession();
+
+  const outcomes = await Promise.allSettled([
+    completeWorkout("session-active", sessions, clock),
+    completeWorkout("session-active", sessions, clock),
+  ]);
+
+  assert.equal(outcomes.filter((outcome) => outcome.status === "fulfilled").length, 1);
+  assert.equal(outcomes.filter((outcome) => outcome.status === "rejected").length, 1);
+  assert.equal(sessions.updateCount, 1);
+  assert.equal(sessions.active?.status, "completed");
+});
+
 test("workout completion rejects a non-active session", async () => {
   const sessions = new MemorySessions();
   sessions.active = {
