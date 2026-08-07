@@ -9,6 +9,7 @@ import {
   WORKLOAD_BANDS,
 } from "../../../src/v5/domain/programming/policy-constants.js";
 import { validateTrainingProfileDraft } from "../../../src/v5/domain/programming/profile.js";
+import { rankStructureProposals } from "../../../src/v5/domain/programming/structure-proposals.js";
 
 const baseConstraints = {
   daysPerWeek: 4,
@@ -16,6 +17,13 @@ const baseConstraints = {
   equipment: ["cable", "dumbbell"],
   dislikedExerciseIds: [],
   restrictedMovementPatterns: [],
+} as const;
+
+const referenceProfile = {
+  level: "beginner",
+  goal: "hypertrophy",
+  primarySpecialization: "v_shape",
+  constraints: baseConstraints,
 } as const;
 
 test("allows one primary and at most one distinct secondary focus", () => {
@@ -94,5 +102,24 @@ test("policy constants are ordered, finite, versioned, and conservatively bounde
         }
       }
     }
+  }
+});
+
+test("structure proposals return deterministic 2-3 options within the exact day constraint", () => {
+  const first = rankStructureProposals(referenceProfile);
+  const second = rankStructureProposals(referenceProfile);
+
+  assert.ok(first.length >= 2 && first.length <= 3);
+  assert.deepEqual(first, second);
+  assert.ok(first.every((proposal) => proposal.daysPerWeek === 4));
+  assert.ok(first.every((proposal) => proposal.sessionKeys.length === 4));
+  assert.ok(first.every((proposal) => proposal.rationale.trim().length > 0));
+  assert.ok(first.every((proposal) => proposal.tradeoffs.length > 0));
+  assert.equal(first.some((proposal) => proposal.daysPerWeek === 5), false);
+  for (let index = 1; index < first.length; index += 1) {
+    assert.ok(
+      first[index - 1].score > first[index].score ||
+        (first[index - 1].score === first[index].score && first[index - 1].id < first[index].id),
+    );
   }
 });
