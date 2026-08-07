@@ -1,7 +1,7 @@
 import type { SessionRepository } from "../../application/ports/session-repository.js";
 import type { V5Database } from "../../application/ports/storage.js";
 import { LiftPathV5Error } from "../../domain/common/errors.js";
-import type { EntityId } from "../../domain/common/types.js";
+import type { EntityId, ISODateTime } from "../../domain/common/types.js";
 import type { CompletedSet } from "../../domain/training/set.js";
 import type { TrainingSession } from "../../domain/training/session.js";
 import { SESSION_STATUS_INDEX, SET_SESSION_INDEX } from "../db/constants.js";
@@ -51,6 +51,31 @@ export function createSessionRepository(
     async update(session: TrainingSession): Promise<void> {
       await database.transaction(["sessions"], "readwrite", async (tx) => {
         await tx.put("sessions", session);
+      });
+    },
+
+    async completeIfActive(
+      sessionId: EntityId,
+      completedAt: ISODateTime,
+    ): Promise<TrainingSession> {
+      return database.transaction(["sessions"], "readwrite", async (tx) => {
+        const session = await tx.get<TrainingSession>("sessions", sessionId);
+        if (!session || session.status !== "active") {
+          throw new LiftPathV5Error(
+            "VALIDATION_ERROR",
+            "Workout completion requires an active session",
+          );
+        }
+
+        const completed: TrainingSession = {
+          ...session,
+          status: "completed",
+          completedAt,
+          updatedAt: completedAt,
+          revision: session.revision + 1,
+        };
+        await tx.put("sessions", completed);
+        return completed;
       });
     },
 
