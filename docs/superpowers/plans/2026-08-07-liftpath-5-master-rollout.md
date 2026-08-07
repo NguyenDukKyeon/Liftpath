@@ -153,6 +153,19 @@ export type PrimaryGoal = "hypertrophy" | "strength" | "general_fitness";
 export type TrainingLevel = "beginner" | "intermediate";
 export type DecisionState = "pending" | "accepted" | "modified" | "skipped";
 
+// Owned by src/v5/application/ports/storage.ts so application code never imports an infrastructure-defined type.
+export type V5StoreName =
+  | "metadata"
+  | "profiles"
+  | "programVersions"
+  | "sessions"
+  | "sessionExercises"
+  | "sets"
+  | "recommendations"
+  | "recoverySnapshots"
+  | "readinessEntries"
+  | "trainingBlocks";
+
 export interface Clock {
   now(): ISODateTime;
 }
@@ -161,6 +174,8 @@ export interface IdGenerator {
   next(prefix: string): EntityId;
 }
 ```
+
+`src/v5/infrastructure/db/constants.ts` may export a `V5_STORES` value typed as `readonly V5StoreName[]`, but it must not redefine the `V5StoreName` type. If a slice-plan snippet shows the type beside infrastructure constants, follow this master contract instead; this ownership rule is the self-review correction.
 
 Repository ports must expose task-specific methods rather than a generic `saveAppState()` API. Transactions that change multiple authoritative records must be explicit application use cases.
 
