@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { evaluateCalibration } from "../../../src/v5/domain/training/calibration.js";
 import { validateCompletedSetInput } from "../../../src/v5/domain/training/set.js";
 import { buildTrainingSession } from "../../../src/v5/domain/training/session.js";
 import type { ProgramVersion } from "../../../src/v5/domain/programming/program.js";
@@ -41,4 +42,25 @@ test("training-session builder rejects an unknown session key", () => {
   assert.equal(session.sessionKey, "upper-a");
   assert.equal(session.status, "active");
   assert.equal(session.id, "session-1");
+});
+
+test("calibration increases only at top reps with clearly excessive RIR", () => {
+  assert.deepEqual(
+    evaluateCalibration({ reps: 12, targetMinReps: 8, targetMaxReps: 12, rir: 5, targetRir: 2 }),
+    { type: "increase", multiplier: 1.05 },
+  );
+});
+
+test("calibration decreases below minimum when RIR is zero", () => {
+  assert.deepEqual(
+    evaluateCalibration({ reps: 7, targetMinReps: 8, targetMaxReps: 12, rir: 0, targetRir: 2 }),
+    { type: "decrease", multiplier: 0.9 },
+  );
+});
+
+test("calibration keeps load inside range near target effort", () => {
+  assert.deepEqual(
+    evaluateCalibration({ reps: 10, targetMinReps: 8, targetMaxReps: 12, rir: 2, targetRir: 2 }),
+    { type: "keep" },
+  );
 });
