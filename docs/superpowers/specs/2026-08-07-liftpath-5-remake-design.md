@@ -25,7 +25,7 @@ The following decisions are locked for the design and must not be silently reint
 6. **Specialization model:** A specialization modifies a primary goal rather than replacing it.
 7. **Specialization capacity:** One primary specialization and at most one secondary focus.
 8. **Flagship specialization:** V-Shape / V-Taper.
-9. **Physique assessment:** Training data only; no body measurements or photo analysis are required for Coach decisions.
+9. **Physique assessment:** Training data only; no body measurements or photo analysis are required for Coach decisions about physique specialization progress. Readiness inputs such as energy, soreness, and user-reported pain remain allowed because they are training-state inputs, not physique measurements.
 10. **Coach authority:** Coach recommends; the user accepts, modifies, or skips material program changes.
 11. **Training structure ownership:** The user owns the selected split/training structure. Coach must not automatically change it or proactively propose changing it during normal adaptation. Re-selection occurs only when the user explicitly enters a change-structure flow.
 12. **Split selection:** Coach proposes 2–3 suitable structures and the user chooses one.
@@ -68,7 +68,7 @@ Onboarding gathers only variables that materially affect prescription:
 - disliked exercises or meaningful preferences;
 - movement restrictions and user-reported pain flags.
 
-The app does not need physique photos, shoulder/waist measurements, or inferred body-composition estimates to make Coach decisions.
+The app does not need physique photos, shoulder/waist measurements, or inferred body-composition estimates to make Coach decisions about specialization progress.
 
 ### 4.2 Primary goals
 
@@ -154,6 +154,8 @@ V5 must not encode a universal fixed weekly set number for every muscle and ever
 
 Specialization should preferentially **redistribute** training resources before simply increasing total workload. If more side-delt emphasis is needed, the first question is whether lower-priority workload can be reduced or rearranged before adding total weekly sets.
 
+The design intentionally does not lock exact set ceilings, indirect-set coefficients, or rep-range tables. Those values must be defined as versioned policy constants during implementation planning and validated through tests/scenarios rather than presented as universal physiological truths.
+
 ### 4.8 Direct and indirect workload
 
 The engine may model direct and meaningful indirect work separately. A simple first heuristic may use direct-set credit and partial indirect-set credit, but any coefficient is an explicit, versioned programming heuristic rather than a claim of physiological precision.
@@ -183,7 +185,7 @@ Specialization affects not only weekly sets but also exercise order and placemen
 
 ### 4.11 Initial load calibration
 
-For a new or uncalibrated exercise, LiftPath should guide the user through a conservative calibration flow using target reps and an effort estimate such as RIR. The engine may suggest a small load adjustment between sets when the observed result is clearly too easy or too hard, but the user remains in control.
+For a new or uncalibrated exercise, LiftPath should guide the user through a conservative calibration flow using target reps and an effort estimate such as RIR. The engine may suggest a small load adjustment between sets when the observed result is clearly too easy or too hard, but the user remains in control. A user-confirmed within-session calibration adjustment is an execution aid, not a silent program-version change.
 
 ### 4.12 Working prescription
 
@@ -580,7 +582,7 @@ Only action-required recommendations receive prominent placement.
 
 ### 8.4 Readiness
 
-Pre-workout readiness remains lightweight. A default flow may collect energy and soreness with optional user-reported pain. Normal users should be able to begin training with very few interactions.
+Pre-workout readiness remains lightweight. A default flow may collect energy and soreness with optional user-reported pain. These inputs are used as training-state/safety signals and are not treated as measurements of physique change. Normal users should be able to begin training with very few interactions.
 
 ### 8.5 Workout Mode
 
@@ -1058,7 +1060,8 @@ The primary reference path for V5 design and acceptance is:
 Primary Goal: Hypertrophy
 Specialization: V-Shape
 Level: Beginner -> Intermediate
-Assessment: Training data only
+Physique progress assessment: Training data only
+Training-state inputs: Energy / soreness / user-reported pain allowed
 Structure: User selects from 2–3 Coach proposals
 Coach authority: Recommend / user approves
 Runtime: Local-first PWA
@@ -1073,9 +1076,11 @@ The implementation plan created from this design must:
 
 - preserve all approved product decisions and invariants above;
 - avoid V4 data migration work;
+- preserve V4 storage while isolating V5 storage;
 - avoid mandatory backend/account dependencies in V5.0;
 - prioritize data integrity and workout logging before advanced Coach behavior;
 - implement Coach behavior through testable deterministic domain policies;
+- define policy constants (for example workload bounds and indirect-work heuristics) explicitly, version them, and cover them with scenario tests rather than treating them as universal facts;
 - use V-Shape as the first deep specialization without hard-coding the entire app to that specialization;
 - keep React/UI separate from Coach/domain logic;
 - plan backup/recovery and failure handling as first-class features rather than end-stage polish;
