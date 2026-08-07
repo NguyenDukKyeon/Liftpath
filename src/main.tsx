@@ -2,6 +2,8 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.js";
 import { ErrorBoundary } from "./components/ErrorBoundary.js";
+import { V5PreviewApp } from "./v5/app/V5PreviewApp.js";
+import { selectRuntime } from "./v5/app/select-runtime.js";
 import "./styles.css";
 import "./features/workout/workout-guided.css";
 import "./features/workout/touch-targets.css";
@@ -22,8 +24,10 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
   });
 }
 
+const RuntimeApp = selectRuntime(window.location.search) === "v5" ? V5PreviewApp : App;
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ErrorBoundary><App /></ErrorBoundary>
+    <ErrorBoundary><RuntimeApp /></ErrorBoundary>
   </StrictMode>,
 );
