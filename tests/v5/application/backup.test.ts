@@ -23,6 +23,7 @@ import {
 class MemoryDatabase implements V5Database {
   readonly stores = new Map<V5StoreName, Map<EntityId, VersionedRecord>>();
   mutationCount = 0;
+  externalGetAllCount = 0;
 
   seed(store: V5StoreName, record: VersionedRecord): void {
     const records = this.stores.get(store) ?? new Map<EntityId, VersionedRecord>();
@@ -56,6 +57,7 @@ class MemoryDatabase implements V5Database {
   }
 
   async getAll<T>(store: V5StoreName): Promise<T[]> {
+    this.externalGetAllCount += 1;
     return [...(this.stores.get(store)?.values() ?? [])].map((record) =>
       structuredClone(record) as T,
     );
@@ -132,6 +134,11 @@ test("destructive import snapshots current V5 data before replacement", async ()
   const preview = await importBackup(encoded, target, fixedClock, fixedIds);
 
   assert.equal(preview.totalRecords, 2);
+  assert.equal(
+    target.externalGetAllCount,
+    0,
+    "pre-import recovery snapshot must be captured inside the destructive transaction",
+  );
   assert.deepEqual(
     (await target.getAll<VersionedRecord>("profiles")).map((item) => item.id),
     ["profile-imported"],
