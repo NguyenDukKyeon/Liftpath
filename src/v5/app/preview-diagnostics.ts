@@ -1,5 +1,9 @@
 import type { VersionedRecord } from "../domain/common/types.js";
 import { createIndexedDbDatabase } from "../infrastructure/repositories/indexed-db-database.js";
+import {
+  verifyBackupRoundTrip,
+  type BackupRoundTripResult,
+} from "./backup-roundtrip-diagnostic.js";
 
 interface RollbackResult {
   caught: boolean;
@@ -9,6 +13,7 @@ interface RollbackResult {
 
 interface V5PreviewDiagnostics {
   verifyTransactionRollback(): Promise<RollbackResult>;
+  verifyBackupRoundTrip(): Promise<BackupRoundTripResult>;
 }
 
 declare global {
@@ -52,7 +57,10 @@ export function installPreviewDiagnostics(search: string): () => void {
     return () => undefined;
   }
 
-  window.__liftpathV5Diagnostics = { verifyTransactionRollback };
+  window.__liftpathV5Diagnostics = {
+    verifyTransactionRollback,
+    verifyBackupRoundTrip,
+  };
 
   return () => {
     delete window.__liftpathV5Diagnostics;
