@@ -11,17 +11,12 @@ test("V4 stays default and V5 requires preview flag", async ({ page }) => {
 
 test("opens isolated V5 IndexedDB schema", async ({ page }) => {
   await page.goto("/?v5=1");
-  const info = await page.evaluate(async () => {
-    const moduleUrl = new URL("/src/v5/infrastructure/db/open-db.ts", window.location.origin).href;
-    const mod = await import(/* @vite-ignore */ moduleUrl);
-    const db = await mod.openLiftPathV5Db();
-    const result = { name: db.name, stores: [...db.objectStoreNames] };
-    db.close();
-    return result;
-  });
+  const probe = page.getByTestId("v5-db-info");
 
-  expect(info.name).toBe("liftpath-v5");
-  expect(info.stores).toEqual(
+  await expect(probe).toHaveAttribute("data-db-name", "liftpath-v5");
+  const stores = (await probe.getAttribute("data-db-stores"))?.split(",") ?? [];
+
+  expect(stores).toEqual(
     expect.arrayContaining(["metadata", "sets", "sessions", "recoverySnapshots"]),
   );
 });
