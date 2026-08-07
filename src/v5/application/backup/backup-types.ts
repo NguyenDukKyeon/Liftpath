@@ -45,3 +45,8 @@ export interface UnsignedBackupPayload {
   createdAt: ISODateTime;
   records: BackupRecords;
 }
+
+export interface RecoverySnapshotRecord extends VersionedRecord {
+  kind: "pre-import";
+  backupText: string;
+}
