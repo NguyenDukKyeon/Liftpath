@@ -1,13 +1,17 @@
 import type { Clock } from "../ports/clock.js";
 import type { IdGenerator } from "../ports/id-generator.js";
 import type { V5Database } from "../ports/storage.js";
+import type { VersionedRecord } from "../../domain/common/types.js";
 import {
+  BACKUP_SCHEMA_VERSION,
   BACKUP_STORE_NAMES,
   type BackupPreview,
   type RecoverySnapshotRecord,
 } from "./backup-types.js";
-import { exportBackup } from "./export-backup.js";
-import { decodeBackupBundle } from "../../infrastructure/backup/json-backup-codec.js";
+import {
+  decodeBackupBundle,
+  emptyBackupRecords,
+} from "../../infrastructure/backup/json-backup-codec.js";
 
 export async function previewBackup(text: string): Promise<BackupPreview> {
   const bundle = await decodeBackupBundle(text);
@@ -31,21 +35,26 @@ export async function importBackup(
 ): Promise<BackupPreview> {
   const preview = await previewBackup(text);
   const incoming = await decodeBackupBundle(text);
-  const currentBackup = await exportBackup(database, clock);
   const now = clock.now();
-  const snapshot: RecoverySnapshotRecord = {
-    id: ids.next("recovery"),
-    kind: "pre-import",
-    backupText: currentBackup,
-    createdAt: now,
-    updatedAt: now,
-    revision: 1,
-  };
 
   await database.transaction(
     [...BACKUP_STORE_NAMES, "recoverySnapshots"],
     "readwrite",
     async (tx) => {
+      const currentRecords = emptyBackupRecords();
+      for (const store of BACKUP_STORE_NAMES) {
+        currentRecords[store] = await tx.getAll<VersionedRecord>(store);
+      }
+
+      const snapshot: RecoverySnapshotRecord = {
+        id: ids.next("recovery"),
+        kind: "pre-import",
+        schemaVersion: BACKUP_SCHEMA_VERSION,
+        records: currentRecords,
+        createdAt: now,
+        updatedAt: now,
+        revision: 1,
+      };
       await tx.put("recoverySnapshots", snapshot);
 
       for (const store of BACKUP_STORE_NAMES) {
