@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { openLiftPathV5Db } from "../infrastructure/db/open-db.js";
+import { installPreviewDiagnostics } from "./preview-diagnostics.js";
 
 interface DatabaseInfo {
   name: string;
@@ -11,6 +12,7 @@ export function V5PreviewApp() {
 
   useEffect(() => {
     let active = true;
+    const removeDiagnostics = installPreviewDiagnostics(window.location.search);
 
     void openLiftPathV5Db().then((db) => {
       if (active) {
@@ -21,6 +23,7 @@ export function V5PreviewApp() {
 
     return () => {
       active = false;
+      removeDiagnostics();
     };
   }, []);
 
