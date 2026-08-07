@@ -50,6 +50,13 @@ class MemoryDatabase implements V5Database {
         [...(this.stores.get(store)?.values() ?? [])].map((storedRecord) =>
           structuredClone(storedRecord) as R,
         ),
+      getAllByIndex: async <R>(store: V5StoreName, indexName: string, key: IDBValidKey | IDBKeyRange) => {
+        const field = indexName === "by-status" ? "status" : indexName === "by-session" ? "sessionId" : null;
+        if (!field) return [];
+        return [...(this.stores.get(store)?.values() ?? [])]
+          .filter((storedRecord) => (storedRecord as VersionedRecord & Record<string, unknown>)[field] === key)
+          .map((storedRecord) => structuredClone(storedRecord) as R);
+      },
       delete: async (store, id) => {
         this.mutationCount += 1;
         this.stores.get(store)?.delete(id);

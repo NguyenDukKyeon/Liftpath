@@ -22,6 +22,16 @@ class IndexedDbTransaction implements V5Transaction {
     return requestToPromise(this.transaction.objectStore(store).getAll()) as Promise<T[]>;
   }
 
+  async getAllByIndex<T>(
+    store: V5StoreName,
+    indexName: string,
+    key: IDBValidKey | IDBKeyRange,
+  ): Promise<T[]> {
+    return requestToPromise(
+      this.transaction.objectStore(store).index(indexName).getAll(key),
+    ) as Promise<T[]>;
+  }
+
   async delete(store: V5StoreName, id: EntityId): Promise<void> {
     await requestToPromise(this.transaction.objectStore(store).delete(id));
   }

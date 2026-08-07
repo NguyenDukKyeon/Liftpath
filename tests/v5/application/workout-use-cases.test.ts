@@ -23,6 +23,14 @@ class MemorySessions implements SessionRepository {
     this.active = session;
   }
 
+  async createIfNoActive(session: TrainingSession): Promise<void> {
+    if (this.active?.status === "active") {
+      throw new LiftPathV5Error("VALIDATION_ERROR", "active session already exists");
+    }
+    this.createCount += 1;
+    this.active = session;
+  }
+
   async update(session: TrainingSession): Promise<void> {
     this.updateCount += 1;
     this.active = session;
@@ -42,6 +50,16 @@ class MemorySessions implements SessionRepository {
 
   async saveSet(set: CompletedSet): Promise<void> {
     if (this.rejectSetWrites) throw new Error("storage unavailable");
+    if (
+      this.sets.some(
+        (candidate) =>
+          candidate.sessionId === set.sessionId &&
+          candidate.exerciseId === set.exerciseId &&
+          candidate.setOrdinal === set.setOrdinal,
+      )
+    ) {
+      throw new LiftPathV5Error("VALIDATION_ERROR", "logical set already committed");
+    }
     this.sets.push(set);
   }
 }

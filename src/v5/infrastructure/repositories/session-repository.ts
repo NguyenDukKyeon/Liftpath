@@ -14,12 +14,36 @@ function indexedQuery(database: V5Database): NonNullable<V5Database["getAllByInd
   return database.getAllByIndex.bind(database);
 }
 
+function rejectExistingActive(matches: TrainingSession[]): void {
+  if (matches.length > 1) {
+    throw new LiftPathV5Error("CORRUPTED_DATA", "Multiple active workout sessions found");
+  }
+  if (matches.length === 1) {
+    throw new LiftPathV5Error(
+      "VALIDATION_ERROR",
+      "An active workout already exists; resume or cancel it before starting another",
+    );
+  }
+}
+
 export function createSessionRepository(
   database: V5Database = createIndexedDbDatabase(),
 ): SessionRepository {
   return {
     async create(session: TrainingSession): Promise<void> {
       await database.transaction(["sessions"], "readwrite", async (tx) => {
+        await tx.put("sessions", session);
+      });
+    },
+
+    async createIfNoActive(session: TrainingSession): Promise<void> {
+      await database.transaction(["sessions"], "readwrite", async (tx) => {
+        const active = await tx.getAllByIndex<TrainingSession>(
+          "sessions",
+          SESSION_STATUS_INDEX,
+          "active",
+        );
+        rejectExistingActive(active);
         await tx.put("sessions", session);
       });
     },
@@ -61,6 +85,21 @@ export function createSessionRepository(
 
     async saveSet(set: CompletedSet): Promise<void> {
       await database.transaction(["sets"], "readwrite", async (tx) => {
+        const sessionSets = await tx.getAllByIndex<CompletedSet>(
+          "sets",
+          SET_SESSION_INDEX,
+          set.sessionId,
+        );
+        const duplicate = sessionSets.some(
+          (candidate) =>
+            candidate.exerciseId === set.exerciseId && candidate.setOrdinal === set.setOrdinal,
+        );
+        if (duplicate) {
+          throw new LiftPathV5Error(
+            "VALIDATION_ERROR",
+            "This workout set has already been committed",
+          );
+        }
         await tx.put("sets", set);
       });
     },

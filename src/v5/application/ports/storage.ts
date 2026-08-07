@@ -16,6 +16,11 @@ export interface V5Transaction {
   put<T extends VersionedRecord>(store: V5StoreName, record: T): Promise<void>;
   get<T>(store: V5StoreName, id: EntityId): Promise<T | undefined>;
   getAll<T>(store: V5StoreName): Promise<T[]>;
+  getAllByIndex<T>(
+    store: V5StoreName,
+    indexName: string,
+    key: IDBValidKey | IDBKeyRange,
+  ): Promise<T[]>;
   delete(store: V5StoreName, id: EntityId): Promise<void>;
   clear(store: V5StoreName): Promise<void>;
 }
