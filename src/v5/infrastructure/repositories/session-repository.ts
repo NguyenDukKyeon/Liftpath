@@ -24,6 +24,12 @@ export function createSessionRepository(
       });
     },
 
+    async update(session: TrainingSession): Promise<void> {
+      await database.transaction(["sessions"], "readwrite", async (tx) => {
+        await tx.put("sessions", session);
+      });
+    },
+
     async get(id: EntityId): Promise<TrainingSession | undefined> {
       return database.transaction(["sessions"], "readonly", (tx) =>
         tx.get<TrainingSession>("sessions", id),
