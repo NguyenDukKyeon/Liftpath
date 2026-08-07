@@ -10,7 +10,10 @@ import type {
   VersionedRecord,
 } from "../../../src/v5/domain/common/types.js";
 import { exportBackup } from "../../../src/v5/application/backup/export-backup.js";
-import { previewBackup } from "../../../src/v5/application/backup/import-backup.js";
+import {
+  importBackup,
+  previewBackup,
+} from "../../../src/v5/application/backup/import-backup.js";
 import { LiftPathV5Error } from "../../../src/v5/domain/common/errors.js";
 
 class MemoryDatabase implements V5Database {
@@ -52,6 +55,7 @@ class MemoryDatabase implements V5Database {
 }
 
 const fixedClock = { now: () => "2026-08-07T04:30:00.000Z" } as const;
+const fixedIds = { next: (prefix: string) => `${prefix}-1` } as const;
 
 function record(id: string): VersionedRecord {
   return {
@@ -93,4 +97,36 @@ test("tampering with an authoritative record invalidates the backup checksum", a
     (error: unknown) =>
       error instanceof LiftPathV5Error && error.code === "BACKUP_ERROR",
   );
+});
+
+test("destructive import snapshots current V5 data before replacement", async () => {
+  const target = new MemoryDatabase();
+  target.seed("profiles", record("profile-old"));
+  target.seed("sessions", record("session-old"));
+
+  const source = new MemoryDatabase();
+  source.seed("profiles", record("profile-imported"));
+  source.seed("sessions", record("session-imported"));
+  const encoded = await exportBackup(source, fixedClock);
+
+  const preview = await importBackup(encoded, target, fixedClock, fixedIds);
+
+  assert.equal(preview.totalRecords, 2);
+  assert.deepEqual(
+    (await target.getAll<VersionedRecord>("profiles")).map((item) => item.id),
+    ["profile-imported"],
+  );
+  assert.deepEqual(
+    (await target.getAll<VersionedRecord>("sessions")).map((item) => item.id),
+    ["session-imported"],
+  );
+
+  const snapshots = await target.getAll<VersionedRecord & { backupText: string }>(
+    "recoverySnapshots",
+  );
+  assert.equal(snapshots.length, 1);
+  const oldPreview = await previewBackup(snapshots[0].backupText);
+  assert.equal(oldPreview.totalRecords, 2);
+  assert.equal(oldPreview.manifest.recordCounts.profiles, 1);
+  assert.equal(oldPreview.manifest.recordCounts.sessions, 1);
 });
