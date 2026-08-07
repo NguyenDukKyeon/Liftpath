@@ -82,7 +82,7 @@ test("set survives reload after committed completion", async ({ page }) => {
 });
 
 test("active workout resumes after reload and completed workout stays completed", async ({ page }) => {
-  await page.goto("/?v5=1");
+  await page.goto("/?v5=1&demo=workout-core");
 
   await expect(page.getByRole("button", { name: "Start workout" })).toBeVisible();
   await page.getByRole("button", { name: "Start workout" }).click();
