@@ -51,7 +51,7 @@ Implement these plans in order. Each plan ends in a working, independently revie
 
 3. `2026-08-07-liftpath-5-prescription-onboarding.md`
    - Goal + specialization model.
-   - Curated exercise metadata seed.
+   - Initial curated exercise metadata seed.
    - Split proposals.
    - Constraint-based initial prescription.
    - Onboarding and program preview/approval.
@@ -69,13 +69,18 @@ Implement these plans in order. Each plan ends in a working, independently revie
    - End-of-block review without automatic program replacement.
    - User-initiated goal/specialization transitions that preserve structure/history.
 
-6. `2026-08-07-liftpath-5-product-ux.md`
+6. `2026-08-07-liftpath-5-integration-readiness.md`
+   - Concrete Clock/ID adapters and one app-edge service composition root.
+   - Production-breadth curated exercise catalog with integrity checks.
+   - Rest timer derived from committed set timestamps.
+
+7. `2026-08-07-liftpath-5-product-ux.md`
    - Today / Program / Progress / History IA.
    - Coach decision queue.
    - Focused Workout Mode and readiness.
    - Recap, substitutions, progressive disclosure, responsive design.
 
-7. `2026-08-07-liftpath-5-hardening-release.md`
+8. `2026-08-07-liftpath-5-hardening-release.md`
    - Golden Coach scenarios and invariant/property-style coverage.
    - Corruption/error injection and backup recovery.
    - Large-history performance gates.
@@ -103,6 +108,7 @@ src/v5/
     backup/
     recovery/
   infrastructure/
+    common/
     db/
     repositories/
     backup/
@@ -176,7 +182,7 @@ Before starting the next plan:
 
 ## Final Product Gate
 
-V5 cannot become the default until all seven plans are complete and the final release plan proves:
+V5 cannot become the default until all eight plans are complete and the final release plan proves:
 
 ```text
 Data integrity          PASS
@@ -187,6 +193,8 @@ Coach determinism       PASS
 V-Shape golden cases    PASS
 Pain safety invariant   PASS
 Training lifecycle      PASS
+Runtime composition     PASS
+Catalog integrity       PASS
 Core mobile E2E         PASS
 Accessibility gate      PASS
 Offline core flow       PASS
