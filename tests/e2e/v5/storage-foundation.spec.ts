@@ -41,7 +41,7 @@ test("rolls back writes when transaction work throws", async ({ page }) => {
   expect(result).toEqual({ caught: true, firstExists: false, secondExists: false });
 });
 
-test("backup round-trip restores V5 authoritative records after deleting only V5 storage", async ({ page }) => {
+test("backup round-trip restores V5 authoritative records after resetting only V5 storage", async ({ page }) => {
   await page.goto("/?v5=1&diagnostics=1");
 
   const result = await page.evaluate(async () => {
