@@ -6,7 +6,6 @@ import {
   type BackupBundle,
   type BackupManifest,
   type BackupRecords,
-  type BackupStoreName,
   type UnsignedBackupPayload,
 } from "../../application/backup/backup-types.js";
 import { LiftPathV5Error } from "../../domain/common/errors.js";
@@ -45,7 +44,7 @@ function canonicalize(value: unknown): unknown {
 }
 
 function canonicalRecords(records: BackupRecords): BackupRecords {
-  const result = {} as BackupRecords;
+  const result = emptyBackupRecords();
   for (const store of BACKUP_STORE_NAMES) {
     result[store] = [...records[store]]
       .sort((left, right) => left.id.localeCompare(right.id))
@@ -101,7 +100,7 @@ export async function encodeBackupBundle(
 function parseRecords(value: unknown): BackupRecords {
   if (!isRecord(value)) throw backupError("Backup records are missing or invalid");
 
-  const records = {} as BackupRecords;
+  const records = emptyBackupRecords();
   for (const store of BACKUP_STORE_NAMES) {
     const rawRecords = value[store];
     if (!Array.isArray(rawRecords) || !rawRecords.every(isVersionedRecord)) {
@@ -174,9 +173,13 @@ export async function decodeBackupBundle(text: string): Promise<BackupBundle> {
 }
 
 export function emptyBackupRecords(): BackupRecords {
-  return Object.fromEntries(BACKUP_STORE_NAMES.map((store) => [store, []])) as BackupRecords;
-}
-
-export function isBackupStoreName(value: string): value is BackupStoreName {
-  return (BACKUP_STORE_NAMES as readonly string[]).includes(value);
+  return {
+    metadata: [],
+    profiles: [],
+    programVersions: [],
+    sessions: [],
+    sessionExercises: [],
+    sets: [],
+    recommendations: [],
+  };
 }
