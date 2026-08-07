@@ -20,3 +20,23 @@ test("opens isolated V5 IndexedDB schema", async ({ page }) => {
     expect.arrayContaining(["metadata", "sets", "sessions", "recoverySnapshots"]),
   );
 });
+
+test("rolls back writes when transaction work throws", async ({ page }) => {
+  await page.goto("/?v5=1&diagnostics=1");
+
+  const result = await page.evaluate(async () => {
+    type Diagnostics = {
+      verifyTransactionRollback(): Promise<{
+        caught: boolean;
+        firstExists: boolean;
+        secondExists: boolean;
+      }>;
+    };
+    const diagnostics = (window as typeof window & { __liftpathV5Diagnostics?: Diagnostics })
+      .__liftpathV5Diagnostics;
+    if (!diagnostics) throw new Error("V5 diagnostics unavailable");
+    return diagnostics.verifyTransactionRollback();
+  });
+
+  expect(result).toEqual({ caught: true, firstExists: false, secondExists: false });
+});
