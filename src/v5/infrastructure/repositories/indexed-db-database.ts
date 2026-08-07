@@ -27,7 +27,11 @@ export function createIndexedDbDatabase(
   openDb: () => Promise<IDBDatabase> = openLiftPathV5Db,
 ): V5Database {
   return {
-    async transaction<T>(stores, mode, work): Promise<T> {
+    async transaction<T>(
+      stores: V5StoreName[],
+      mode: IDBTransactionMode,
+      work: (tx: V5Transaction) => Promise<T>,
+    ): Promise<T> {
       const db = await openDb();
       try {
         const nativeTransaction = db.transaction(stores, mode);
@@ -56,7 +60,7 @@ export function createIndexedDbDatabase(
       }
     },
 
-    async getAll<T>(store): Promise<T[]> {
+    async getAll<T>(store: V5StoreName): Promise<T[]> {
       const db = await openDb();
       try {
         const nativeTransaction = db.transaction([store], "readonly");
