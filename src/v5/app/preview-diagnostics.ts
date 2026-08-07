@@ -52,8 +52,13 @@ async function verifyTransactionRollback(): Promise<RollbackResult> {
   };
 }
 
+export function isPreviewDiagnosticsAllowed(search: string, hostname: string): boolean {
+  const localHost = hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+  return localHost && new URLSearchParams(search).get("diagnostics") === "1";
+}
+
 export function installPreviewDiagnostics(search: string): () => void {
-  if (new URLSearchParams(search).get("diagnostics") !== "1") {
+  if (!isPreviewDiagnosticsAllowed(search, window.location.hostname)) {
     return () => undefined;
   }
 
