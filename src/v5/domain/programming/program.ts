@@ -28,4 +28,5 @@ export interface ProgramVersion extends VersionedRecord {
   policyVersion?: PolicyVersion;
   structureId?: string;
   rationale?: string[];
+  sourceRecommendationId?: EntityId;
 }
