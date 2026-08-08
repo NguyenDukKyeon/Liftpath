@@ -24,3 +24,8 @@ export interface CoachRecommendation extends VersionedRecord {
   coachPolicyVersion: PolicyVersion;
   programmingPolicyVersion: PolicyVersion;
 }
+
+export type CoachRecommendationDraft = Omit<
+  CoachRecommendation,
+  keyof VersionedRecord | "decisionState"
+>;
