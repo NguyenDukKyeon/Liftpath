@@ -8,5 +8,9 @@ export interface ProgramRepository {
   get(id: EntityId): Promise<ProgramVersion | undefined>;
   activateInitial(profile: TrainingProfile, program: ProgramVersion): Promise<void>;
   getActive(): Promise<ProgramVersion | undefined>;
+}
+
+export interface CoachDecisionProgramRepository {
+  getActive(): Promise<ProgramVersion | undefined>;
   applyCoachDecision(program: ProgramVersion, recommendation: CoachRecommendation): Promise<void>;
 }

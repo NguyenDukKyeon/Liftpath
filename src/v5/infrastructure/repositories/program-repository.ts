@@ -1,4 +1,4 @@
-import type { ProgramRepository } from "../../application/ports/program-repository.js";
+import type { CoachDecisionProgramRepository, ProgramRepository } from "../../application/ports/program-repository.js";
 import type { V5Database } from "../../application/ports/storage.js";
 import { LiftPathV5Error } from "../../domain/common/errors.js";
 import type { EntityId, VersionedRecord } from "../../domain/common/types.js";
@@ -18,7 +18,7 @@ interface ActiveProgramPointer extends VersionedRecord {
 
 export function createProgramRepository(
   database: V5Database = createIndexedDbDatabase(),
-): ProgramRepository {
+): ProgramRepository & CoachDecisionProgramRepository {
   return {
     async save(program: ProgramVersion): Promise<void> {
       await database.transaction(["programVersions"], "readwrite", async (tx) => {

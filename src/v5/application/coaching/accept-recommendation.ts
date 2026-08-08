@@ -1,6 +1,6 @@
 import type { Clock } from "../ports/clock.js";
 import type { IdGenerator } from "../ports/id-generator.js";
-import type { ProgramRepository } from "../ports/program-repository.js";
+import type { CoachDecisionProgramRepository } from "../ports/program-repository.js";
 import type { RecommendationRepository } from "../ports/recommendation-repository.js";
 import { LiftPathV5Error } from "../../domain/common/errors.js";
 import type { EntityId, ISODateTime } from "../../domain/common/types.js";
@@ -8,7 +8,7 @@ import type { CoachRecommendation, DecisionState, ProgramPatch } from "../../dom
 import type { PrescribedSet, ProgramExercise, ProgramSession, ProgramVersion } from "../../domain/programming/program.js";
 
 export interface CoachDecisionDependencies {
-  programs: Pick<ProgramRepository, "getActive" | "applyCoachDecision">;
+  programs: CoachDecisionProgramRepository;
   recommendations: RecommendationRepository;
   ids: IdGenerator;
   clock: Clock;
