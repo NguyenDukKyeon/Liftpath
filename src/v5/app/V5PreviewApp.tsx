@@ -5,19 +5,24 @@ import {
   type StorageHealth,
   type StorageHealthLoader,
 } from "../application/backup/storage-health.js";
+import { acceptRecommendation } from "../application/coaching/accept-recommendation.js";
+import { skipRecommendation } from "../application/coaching/skip-recommendation.js";
 import { activateProgram } from "../application/programs/activate-program.js";
 import { completeSet, type CompleteSetInput } from "../application/workouts/complete-set.js";
 import { completeWorkout } from "../application/workouts/complete-workout.js";
 import { resumeWorkout } from "../application/workouts/resume-workout.js";
 import { startWorkout } from "../application/workouts/start-workout.js";
 import { LiftPathV5Error } from "../domain/common/errors.js";
+import type { CoachRecommendation } from "../domain/coaching/recommendation.js";
 import type { ProgramProposal } from "../domain/programming/prescription.js";
 import type { TrainingProfileDraft } from "../domain/programming/profile.js";
 import type { ProgramVersion, PrescribedSet } from "../domain/programming/program.js";
 import type { CompletedSet } from "../domain/training/set.js";
 import type { TrainingSession } from "../domain/training/session.js";
 import { createProgramRepository } from "../infrastructure/repositories/program-repository.js";
+import { createRecommendationRepository } from "../infrastructure/repositories/recommendation-repository.js";
 import { createSessionRepository } from "../infrastructure/repositories/session-repository.js";
+import { CoachRecommendationCard } from "../presentation/components/CoachRecommendationCard.js";
 import { OnboardingFlow } from "../presentation/onboarding/OnboardingFlow.js";
 import { WorkoutMode } from "../presentation/workout/WorkoutMode.js";
 import type { SetValues } from "../presentation/workout/SetLogger.js";
@@ -134,6 +139,9 @@ export function V5PreviewApp({
   const [storageHealth, setStorageHealth] = useState<StorageHealth | null>(null);
   const [storageAttempt, setStorageAttempt] = useState(0);
   const [activeProgram, setActiveProgram] = useState<ProgramVersion | null>(null);
+  const [coachRecommendations, setCoachRecommendations] = useState<CoachRecommendation[]>([]);
+  const [coachDecisionPending, setCoachDecisionPending] = useState(false);
+  const [modifyRequestId, setModifyRequestId] = useState<string | null>(null);
   const [workout, setWorkout] = useState<ActiveWorkoutView | null>(null);
   const [workoutReady, setWorkoutReady] = useState(false);
   const [workoutPending, setWorkoutPending] = useState(false);
@@ -176,13 +184,19 @@ export function V5PreviewApp({
     let active = true;
     setWorkoutReady(false);
     setWorkoutError(null);
+    setModifyRequestId(null);
 
     void (async () => {
       try {
         const sessions = createSessionRepository();
         const programs = createProgramRepository();
-        const resumed = await resumeWorkout(sessions);
+        const recommendations = createRecommendationRepository();
+        const [resumed, pendingRecommendations] = await Promise.all([
+          resumeWorkout(sessions),
+          recommendations.listPending(),
+        ]);
         if (!active) return;
+        setCoachRecommendations(pendingRecommendations);
 
         if (resumed) {
           const program = await programs.get(resumed.session.programVersionId);
@@ -234,6 +248,10 @@ export function V5PreviewApp({
     ? [...(workout?.sets ?? [])].reverse().find((set) => set.exerciseId === current.exerciseId)
     : undefined;
 
+  async function refreshPendingRecommendations(): Promise<void> {
+    setCoachRecommendations(await createRecommendationRepository().listPending());
+  }
+
   async function activateApprovedProgram(
     proposal: ProgramProposal,
     profile: TrainingProfileDraft,
@@ -246,6 +264,49 @@ export function V5PreviewApp({
     setActiveProgram(activated.program);
     setWorkoutCompleted(false);
     setWorkoutError(null);
+  }
+
+  async function acceptCoachRecommendation(id: string): Promise<void> {
+    if (coachDecisionPending) return;
+    setCoachDecisionPending(true);
+    setWorkoutError(null);
+    setModifyRequestId(null);
+    try {
+      const recommendations = createRecommendationRepository();
+      const nextProgram = await acceptRecommendation(id, {
+        programs: createProgramRepository(),
+        recommendations,
+        ids: browserIds,
+        clock: browserClock,
+      });
+      if (nextProgram) setActiveProgram(nextProgram);
+      setCoachRecommendations(await recommendations.listPending());
+    } catch (error: unknown) {
+      setWorkoutError(errorMessage(error));
+    } finally {
+      setCoachDecisionPending(false);
+    }
+  }
+
+  async function skipCoachRecommendation(id: string): Promise<void> {
+    if (coachDecisionPending) return;
+    setCoachDecisionPending(true);
+    setWorkoutError(null);
+    setModifyRequestId(null);
+    try {
+      const recommendations = createRecommendationRepository();
+      await skipRecommendation(id, { recommendations, clock: browserClock });
+      setCoachRecommendations(await recommendations.listPending());
+    } catch (error: unknown) {
+      setWorkoutError(errorMessage(error));
+    } finally {
+      setCoachDecisionPending(false);
+    }
+  }
+
+  function requestCoachModification(id: string): void {
+    if (coachDecisionPending) return;
+    setModifyRequestId(id);
   }
 
   async function beginWorkout(): Promise<void> {
@@ -303,6 +364,7 @@ export function V5PreviewApp({
     await completeWorkout(workout.session.id, sessions, browserClock);
     setWorkout(null);
     setWorkoutCompleted(true);
+    await refreshPendingRecommendations();
   }
 
   return (
@@ -341,17 +403,38 @@ export function V5PreviewApp({
               )}
 
               {workoutReady && !workout && activeProgram && (
-                <section aria-label="Active program">
-                  <p>Program active</p>
-                  <h2>{activeProgram.name}</h2>
-                  <output data-testid="v5-active-program-id">{activeProgram.id}</output>
-                  {activeProgram.structureId && <p>Structure: {activeProgram.structureId}</p>}
-                  {activeProgram.policyVersion && <p>Policy: {activeProgram.policyVersion}</p>}
-                  {workoutCompleted && <p>Workout completed</p>}
-                  <button type="button" disabled={workoutPending} onClick={() => void beginWorkout()}>
-                    {workoutPending ? "Starting…" : "Start workout"}
-                  </button>
-                </section>
+                <>
+                  {coachRecommendations.length > 0 && (
+                    <section aria-label="Coach decisions" aria-busy={coachDecisionPending}>
+                      {coachRecommendations.map((recommendation) => (
+                        <CoachRecommendationCard
+                          key={recommendation.id}
+                          recommendation={recommendation}
+                          onAccept={acceptCoachRecommendation}
+                          onModify={requestCoachModification}
+                          onSkip={skipCoachRecommendation}
+                        />
+                      ))}
+                      {modifyRequestId && (
+                        <p role="status">
+                          No change applied. Custom patch editing is not available in this preview slice.
+                        </p>
+                      )}
+                    </section>
+                  )}
+
+                  <section aria-label="Active program">
+                    <p>Program active</p>
+                    <h2>{activeProgram.name}</h2>
+                    <output data-testid="v5-active-program-id">{activeProgram.id}</output>
+                    {activeProgram.structureId && <p>Structure: {activeProgram.structureId}</p>}
+                    {activeProgram.policyVersion && <p>Policy: {activeProgram.policyVersion}</p>}
+                    {workoutCompleted && <p>Workout completed</p>}
+                    <button type="button" disabled={workoutPending || coachDecisionPending} onClick={() => void beginWorkout()}>
+                      {workoutPending ? "Starting…" : "Start workout"}
+                    </button>
+                  </section>
+                </>
               )}
 
               {workout && current && (
