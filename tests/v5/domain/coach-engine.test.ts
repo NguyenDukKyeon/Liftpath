@@ -5,6 +5,7 @@ import { classifyEffortStatus } from "../../../src/v5/domain/coaching/effort-sta
 import { classifyAdherence } from "../../../src/v5/domain/coaching/adherence.js";
 import { COACH_POLICY_VERSION, confidenceForExposureCount } from "../../../src/v5/domain/coaching/confidence.js";
 import { diagnoseObservation } from "../../../src/v5/domain/coaching/diagnosis.js";
+import { recommendProgression } from "../../../src/v5/domain/coaching/progression.js";
 
 const improvingExposures = [
   { id: "set-1", loadKg: 50, reps: 8, rir: 2 },
@@ -65,4 +66,62 @@ test("diagnosis priority puts poor adherence before plateau", () => {
     fatigueExerciseIds: [],
     plateauExerciseIds: ["row"],
   }), { kind: "adherence_limited", sessionIds: ["session-2", "session-3"] });
+});
+
+test("progression recommendation increases load after repeated top-range work at target effort", () => {
+  assert.deepEqual(recommendProgression({
+    exerciseId: "lat-pulldown",
+    exposures: [
+      { id: "set-a", loadKg: 50, reps: 12, rir: 2 },
+      { id: "set-b", loadKg: 50, reps: 12, rir: 2 },
+      { id: "set-c", loadKg: 50, reps: 12, rir: 2 },
+    ],
+    minReps: 8,
+    maxReps: 12,
+    targetRir: 2,
+    loadIncrementKg: 2.5,
+  }), { kind: "set_load", exerciseId: "lat-pulldown", loadKg: 52.5 });
+});
+
+test("progression recommendation corrects effort before increasing load", () => {
+  assert.deepEqual(recommendProgression({
+    exerciseId: "lat-pulldown",
+    exposures: [
+      { id: "set-a", loadKg: 50, reps: 12, rir: 0 },
+      { id: "set-b", loadKg: 50, reps: 12, rir: 0 },
+      { id: "set-c", loadKg: 50, reps: 12, rir: 0 },
+    ],
+    minReps: 8,
+    maxReps: 12,
+    targetRir: 2,
+    loadIncrementKg: 2.5,
+  }), { kind: "set_target_rir", exerciseId: "lat-pulldown", targetRir: 2 });
+});
+
+test("progression recommendation ignores one anomalous exposure", () => {
+  assert.equal(recommendProgression({
+    exerciseId: "lat-pulldown",
+    exposures: [{ id: "set-a", loadKg: 50, reps: 7, rir: 0 }],
+    minReps: 8,
+    maxReps: 12,
+    targetRir: 2,
+    loadIncrementKg: 2.5,
+  }), null);
+});
+
+test("progression recommendation never adds sets while effort is repeatedly too high", () => {
+  const patch = recommendProgression({
+    exerciseId: "row",
+    exposures: [
+      { id: "set-a", loadKg: 60, reps: 10, rir: 0 },
+      { id: "set-b", loadKg: 60, reps: 10, rir: 0 },
+      { id: "set-c", loadKg: 60, reps: 10, rir: 0 },
+    ],
+    minReps: 8,
+    maxReps: 12,
+    targetRir: 2,
+    loadIncrementKg: 2.5,
+  });
+  assert.deepEqual(patch, { kind: "set_target_rir", exerciseId: "row", targetRir: 2 });
+  assert.notEqual(patch?.kind, "set_count");
 });
