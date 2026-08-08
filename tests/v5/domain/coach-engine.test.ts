@@ -6,6 +6,7 @@ import { classifyAdherence } from "../../../src/v5/domain/coaching/adherence.js"
 import { COACH_POLICY_VERSION, confidenceForExposureCount } from "../../../src/v5/domain/coaching/confidence.js";
 import { diagnoseObservation } from "../../../src/v5/domain/coaching/diagnosis.js";
 import { recommendProgression } from "../../../src/v5/domain/coaching/progression.js";
+import { DELOAD_VOLUME_MULTIPLIER, recommendDeload } from "../../../src/v5/domain/coaching/deload.js";
 
 const improvingExposures = [
   { id: "set-1", loadKg: 50, reps: 8, rir: 2 },
@@ -76,10 +77,7 @@ test("progression recommendation increases load after repeated top-range work at
       { id: "set-b", loadKg: 50, reps: 12, rir: 2 },
       { id: "set-c", loadKg: 50, reps: 12, rir: 2 },
     ],
-    minReps: 8,
-    maxReps: 12,
-    targetRir: 2,
-    loadIncrementKg: 2.5,
+    minReps: 8, maxReps: 12, targetRir: 2, loadIncrementKg: 2.5,
   }), { kind: "set_load", exerciseId: "lat-pulldown", loadKg: 52.5 });
 });
 
@@ -91,10 +89,7 @@ test("progression recommendation corrects effort before increasing load", () => 
       { id: "set-b", loadKg: 50, reps: 12, rir: 0 },
       { id: "set-c", loadKg: 50, reps: 12, rir: 0 },
     ],
-    minReps: 8,
-    maxReps: 12,
-    targetRir: 2,
-    loadIncrementKg: 2.5,
+    minReps: 8, maxReps: 12, targetRir: 2, loadIncrementKg: 2.5,
   }), { kind: "set_target_rir", exerciseId: "lat-pulldown", targetRir: 2 });
 });
 
@@ -102,10 +97,7 @@ test("progression recommendation ignores one anomalous exposure", () => {
   assert.equal(recommendProgression({
     exerciseId: "lat-pulldown",
     exposures: [{ id: "set-a", loadKg: 50, reps: 7, rir: 0 }],
-    minReps: 8,
-    maxReps: 12,
-    targetRir: 2,
-    loadIncrementKg: 2.5,
+    minReps: 8, maxReps: 12, targetRir: 2, loadIncrementKg: 2.5,
   }), null);
 });
 
@@ -117,11 +109,39 @@ test("progression recommendation never adds sets while effort is repeatedly too 
       { id: "set-b", loadKg: 60, reps: 10, rir: 0 },
       { id: "set-c", loadKg: 60, reps: 10, rir: 0 },
     ],
-    minReps: 8,
-    maxReps: 12,
-    targetRir: 2,
-    loadIncrementKg: 2.5,
+    minReps: 8, maxReps: 12, targetRir: 2, loadIncrementKg: 2.5,
   });
   assert.deepEqual(patch, { kind: "set_target_rir", exerciseId: "row", targetRir: 2 });
   assert.notEqual(patch?.kind, "set_count");
+});
+
+test("deload requires broad repeated regression plus effort and recovery evidence", () => {
+  assert.equal(DELOAD_VOLUME_MULTIPLIER, 0.7);
+  assert.deepEqual(recommendDeload({
+    weekNumber: 6,
+    sessionSignals: [
+      { sessionId: "s1", broadRegression: true, highEffort: true, recoveryFlag: true },
+      { sessionId: "s2", broadRegression: true, highEffort: true, recoveryFlag: true },
+      { sessionId: "s3", broadRegression: true, highEffort: true, recoveryFlag: true },
+      { sessionId: "s4", broadRegression: true, highEffort: true, recoveryFlag: true },
+      { sessionId: "s5", broadRegression: true, highEffort: true, recoveryFlag: true },
+    ],
+  }), {
+    patch: { kind: "reduced_volume_week", multiplier: 0.7 },
+    confidence: "high",
+    reasonCode: "BROAD_FATIGUE_DELOAD",
+  });
+});
+
+test("deload never triggers from a fixed week number alone", () => {
+  assert.equal(recommendDeload({
+    weekNumber: 6,
+    sessionSignals: [
+      { sessionId: "s1", broadRegression: false, highEffort: false, recoveryFlag: false },
+      { sessionId: "s2", broadRegression: false, highEffort: false, recoveryFlag: false },
+      { sessionId: "s3", broadRegression: false, highEffort: false, recoveryFlag: false },
+      { sessionId: "s4", broadRegression: false, highEffort: false, recoveryFlag: false },
+      { sessionId: "s5", broadRegression: false, highEffort: false, recoveryFlag: false },
+    ],
+  }), null);
 });
