@@ -96,11 +96,11 @@ test("accepting a progression recommendation creates and restores a new active P
   await expect(page.getByRole("heading", { name: "Coach recommendation" })).toBeVisible();
   await expect(page.getByText(/52\.5 kg/i)).toBeVisible();
   await page.getByRole("button", { name: "Accept" }).click();
+  await expect(page.getByRole("heading", { name: "Coach recommendation" })).toHaveCount(0);
 
   const activeId = (await page.getByTestId("v5-active-program-id").textContent())?.trim();
   expect(activeId).toBeTruthy();
   expect(activeId).not.toBe("program-1");
-  await expect(page.getByRole("heading", { name: "Coach recommendation" })).toHaveCount(0);
 
   await page.reload();
   await expect(page.getByTestId("v5-active-program-id")).toHaveText(activeId!);
@@ -125,6 +125,7 @@ test("pain-safety decision does not generate or apply a normal load increase", a
   await expect(page.getByText(/lateral-raise to 0 working sets/i)).toBeVisible();
   await expect(page.getByText(/lateral-raise load/i)).toHaveCount(0);
   await page.getByRole("button", { name: "Accept" }).click();
+  await expect(page.getByRole("heading", { name: "Coach recommendation" })).toHaveCount(0);
 
   const snapshot = await decisionSnapshot(page);
   const activeId = snapshot.pointer.value.programVersionId;
