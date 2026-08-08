@@ -1,4 +1,6 @@
 import {
+  RECOMMENDATION_CREATED_AT_INDEX,
+  RECOMMENDATION_STATE_INDEX,
   SESSION_STATUS_INDEX,
   SET_SESSION_INDEX,
   V5_DB_NAME,
@@ -31,6 +33,14 @@ export function openLiftPathV5Db(): Promise<IDBDatabase> {
       const sets = upgradeTransaction.objectStore("sets");
       if (!sets.indexNames.contains(SET_SESSION_INDEX)) {
         sets.createIndex(SET_SESSION_INDEX, "sessionId", { unique: false });
+      }
+
+      const recommendations = upgradeTransaction.objectStore("recommendations");
+      if (!recommendations.indexNames.contains(RECOMMENDATION_STATE_INDEX)) {
+        recommendations.createIndex(RECOMMENDATION_STATE_INDEX, "decisionState", { unique: false });
+      }
+      if (!recommendations.indexNames.contains(RECOMMENDATION_CREATED_AT_INDEX)) {
+        recommendations.createIndex(RECOMMENDATION_CREATED_AT_INDEX, "createdAt", { unique: false });
       }
     };
 
