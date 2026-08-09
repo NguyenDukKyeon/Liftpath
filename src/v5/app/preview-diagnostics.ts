@@ -12,6 +12,7 @@ import {
   verifyTrainingLifecycleTransition,
   type TrainingLifecycleDiagnosticResult,
 } from "./training-lifecycle-diagnostic.js";
+import { createV5Services } from "./create-v5-services.js";
 
 interface RollbackResult {
   caught: boolean;
@@ -36,10 +37,19 @@ interface CompletedSetProbeResult {
   rir?: number;
 }
 
+interface ServiceCompositionProbeResult {
+  catalogSize: number;
+  activeProgramId: string | null;
+  activeBlockId: string | null;
+  clockSample: string;
+  generatedId: string;
+}
+
 interface V5PreviewDiagnostics {
   verifyTransactionRollback(): Promise<RollbackResult>;
   verifyBackupRoundTrip(): Promise<BackupRoundTripResult>;
   verifyTrainingLifecycleTransition(): Promise<TrainingLifecycleDiagnosticResult>;
+  verifyServiceComposition(): Promise<ServiceCompositionProbeResult>;
   seedWorkoutRepositoryReloadProbe(): Promise<WorkoutRepositoryReloadSeed>;
   readWorkoutRepositoryReloadProbe(): Promise<WorkoutRepositoryReloadRead>;
   completeSetReloadProbe(): Promise<CompletedSetProbeResult>;
@@ -79,6 +89,21 @@ async function verifyTransactionRollback(): Promise<RollbackResult> {
     caught,
     firstExists: records.some((record) => record.id === first.id),
     secondExists: records.some((record) => record.id === second.id),
+  };
+}
+
+async function verifyServiceComposition(): Promise<ServiceCompositionProbeResult> {
+  const services = createV5Services();
+  const [activeProgram, activeBlock] = await Promise.all([
+    services.programs.getActive(),
+    services.programs.getActiveBlock(),
+  ]);
+  return {
+    catalogSize: services.catalog.length,
+    activeProgramId: activeProgram?.id ?? null,
+    activeBlockId: activeBlock?.id ?? null,
+    clockSample: services.clock.now(),
+    generatedId: services.ids.next("diagnostic"),
   };
 }
 
@@ -187,6 +212,7 @@ export function installPreviewDiagnostics(search: string): () => void {
     verifyTransactionRollback,
     verifyBackupRoundTrip,
     verifyTrainingLifecycleTransition,
+    verifyServiceComposition,
     seedWorkoutRepositoryReloadProbe,
     readWorkoutRepositoryReloadProbe,
     completeSetReloadProbe,
