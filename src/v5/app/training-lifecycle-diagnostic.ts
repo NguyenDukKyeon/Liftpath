@@ -5,7 +5,6 @@ import { CATALOG_SEED } from "../domain/exercises/catalog-seed.js";
 import type { TrainingProfile } from "../domain/programming/profile.js";
 import type { ProgramVersion } from "../domain/programming/program.js";
 import type { TrainingBlock } from "../domain/programming/training-block.js";
-import { createBlockRepository } from "../infrastructure/repositories/block-repository.js";
 import { createIndexedDbDatabase } from "../infrastructure/repositories/indexed-db-database.js";
 import { createProgramRepository } from "../infrastructure/repositories/program-repository.js";
 
@@ -91,29 +90,19 @@ export async function verifyTrainingLifecycleTransition(): Promise<TrainingLifec
   );
 
   const programs = createProgramRepository(database);
-  const blocks = createBlockRepository(database);
   const profile = initialProfile();
   const program = initialProgram(profile);
   const block = initialBlock(profile, program);
-  await programs.activateInitial(profile, program);
-  await blocks.createIfNoActive(block);
+  await programs.activateInitial(profile, program, block);
 
   const targetProfile = { ...profile, primarySpecialization: "arms" as const };
   const proposal = proposeGoalTransition(program, profile, targetProfile, { catalog: [...CATALOG_SEED] });
   const activated = await activateGoalTransition(
-    {
-      currentProfile: profile,
-      currentProgram: program,
-      activeBlock: block,
-      targetProfile,
-      proposal,
-    },
+    { currentProfile: profile, currentProgram: program, activeBlock: block, targetProfile, proposal },
     {
       lifecycle: programs,
       clock: { now: () => transitionStamp },
-      ids: {
-        next: (prefix) => prefix === "program" ? "lifecycle-program-2" : "lifecycle-block-2",
-      },
+      ids: { next: (prefix) => prefix === "program" ? "lifecycle-program-2" : "lifecycle-block-2" },
     },
   );
 
