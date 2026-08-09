@@ -12,9 +12,24 @@ test("service composition reaches production repositories through one runtime bu
     return diagnostics.verifyServiceComposition();
   });
 
-  expect(result.catalogSize).toBeGreaterThan(0);
+  expect(result.catalogSize).toBeGreaterThanOrEqual(100);
   expect(result.activeProgramId).toBeNull();
   expect(result.activeBlockId).toBeNull();
   expect(Number.isNaN(Date.parse(result.clockSample))).toBe(false);
   expect(result.generatedId).toMatch(/^diagnostic_/);
+});
+
+test("rest timer appears only after a set is durably completed", async ({ page }) => {
+  await page.goto("/?v5=1&demo=workout-core");
+
+  await expect(page.getByRole("button", { name: "Start workout" })).toBeVisible();
+  await page.getByRole("button", { name: "Start workout" }).click();
+  await expect(page.getByText("0 / 4 sets complete")).toBeVisible();
+  await expect(page.getByTestId("rest-timer")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Complete set" }).click();
+
+  await expect(page.getByText("1 / 4 sets complete")).toBeVisible();
+  await expect(page.getByTestId("rest-timer")).toBeVisible();
+  await expect(page.getByTestId("rest-timer")).toContainText("Rest:");
 });
