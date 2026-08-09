@@ -30,8 +30,10 @@ function completedSet(reps: number): CompletedSet {
   };
 }
 
+const clock = { now: () => "2026-08-07T08:20:30.000Z" } as const;
+
 describe("WorkoutMode", () => {
-  it("shows saved only after persistence resolves", async () => {
+  it("shows saved and starts rest only after persistence resolves", async () => {
     const user = userEvent.setup();
     const pending = deferred<CompletedSet>();
     const onCompleteSet = vi.fn(() => pending.promise);
@@ -45,6 +47,8 @@ describe("WorkoutMode", () => {
         prescribed={{ loadKg: 30, reps: 10, rir: 2 }}
         previous={{ loadKg: 27.5, reps: 9, rir: 2 }}
         onCompleteSet={onCompleteSet}
+        clock={clock}
+        restTargetSeconds={120}
       />,
     );
 
@@ -56,10 +60,12 @@ describe("WorkoutMode", () => {
 
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
     expect(screen.queryByText("Set saved")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("rest-timer")).not.toBeInTheDocument();
 
     pending.resolve(completedSet(11));
 
     expect(await screen.findByText("Set saved")).toBeInTheDocument();
+    expect(await screen.findByTestId("rest-timer")).toHaveTextContent("Rest: 1:30");
     expect(onCompleteSet).toHaveBeenCalledWith({
       sessionId: "session-1",
       exerciseId: "exercise-1",
@@ -70,7 +76,7 @@ describe("WorkoutMode", () => {
     });
   });
 
-  it("keeps entered values when persistence rejects", async () => {
+  it("keeps entered values and does not start rest when persistence rejects", async () => {
     const user = userEvent.setup();
     const onCompleteSet = vi.fn().mockRejectedValue(new Error("storage failed"));
 
@@ -83,6 +89,8 @@ describe("WorkoutMode", () => {
         prescribed={{ loadKg: 30, reps: 10, rir: 2 }}
         previous={{ loadKg: 27.5, reps: 9, rir: 2 }}
         onCompleteSet={onCompleteSet}
+        clock={clock}
+        restTargetSeconds={120}
       />,
     );
 
@@ -94,5 +102,6 @@ describe("WorkoutMode", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("storage failed");
     expect(reps).toHaveValue(11);
     expect(screen.queryByText("Set saved")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("rest-timer")).not.toBeInTheDocument();
   });
 });
