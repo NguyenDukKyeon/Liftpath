@@ -20,6 +20,8 @@ export interface ProgramSession {
   exercises: ProgramExercise[];
 }
 
+export type ProgramVersionSource = "initial" | "coach_recommendation" | "user_goal_change";
+
 export interface ProgramVersion extends VersionedRecord {
   versionNumber: number;
   name: string;
@@ -28,5 +30,7 @@ export interface ProgramVersion extends VersionedRecord {
   policyVersion?: PolicyVersion;
   structureId?: string;
   rationale?: string[];
+  source?: ProgramVersionSource;
   sourceRecommendationId?: EntityId;
+  transitionRetainedExerciseIds?: EntityId[];
 }

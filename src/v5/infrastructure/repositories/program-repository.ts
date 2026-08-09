@@ -1,4 +1,9 @@
-import type { CoachDecisionProgramRepository, ProgramRepository } from "../../application/ports/program-repository.js";
+import type {
+  CoachDecisionProgramRepository,
+  GoalTransitionCommit,
+  GoalTransitionRepository,
+  ProgramRepository,
+} from "../../application/ports/program-repository.js";
 import type { V5Database } from "../../application/ports/storage.js";
 import { LiftPathV5Error } from "../../domain/common/errors.js";
 import type { EntityId, VersionedRecord } from "../../domain/common/types.js";
@@ -20,7 +25,7 @@ interface ActiveProgramPointer extends VersionedRecord {
 
 export function createProgramRepository(
   database: V5Database = createIndexedDbDatabase(),
-): ProgramRepository & CoachDecisionProgramRepository {
+): ProgramRepository & CoachDecisionProgramRepository & GoalTransitionRepository {
   return {
     async save(program: ProgramVersion): Promise<void> {
       await database.transaction(["programVersions"], "readwrite", async (tx) => {
@@ -121,6 +126,74 @@ export function createProgramRepository(
               advanceTrainingBlockProgram(activeBlock, program.id, program.updatedAt),
             );
           }
+        },
+      );
+    },
+
+    async activateGoalTransition(input: GoalTransitionCommit): Promise<void> {
+      await database.transaction(
+        ["profiles", "programVersions", "trainingBlocks", "metadata"],
+        "readwrite",
+        async (tx) => {
+          const pointer = await tx.get<ActiveProgramPointer>("metadata", ACTIVE_PROGRAM_METADATA_ID);
+          if (!pointer || pointer.value.programVersionId !== input.expectedActiveProgramId) {
+            throw new LiftPathV5Error("VALIDATION_ERROR", "Goal transition is based on a stale active program");
+          }
+
+          const storedProfile = await tx.get<TrainingProfile>("profiles", pointer.value.profileId);
+          if (!storedProfile || storedProfile.revision !== input.expectedProfileRevision) {
+            throw new LiftPathV5Error("VALIDATION_ERROR", "Goal transition is based on a stale profile");
+          }
+
+          const activeBlocks = await tx.getAllByIndex<TrainingBlock>(
+            "trainingBlocks",
+            BLOCK_STATUS_INDEX,
+            "active",
+          );
+          if (activeBlocks.length !== 1 || activeBlocks[0]?.id !== input.expectedActiveBlockId) {
+            throw new LiftPathV5Error("VALIDATION_ERROR", "Goal transition requires the expected active block");
+          }
+          const storedBlock = activeBlocks[0];
+          if (!storedBlock) {
+            throw new LiftPathV5Error("CORRUPTED_DATA", "Active training block is missing");
+          }
+          if (
+            storedBlock.currentProgramVersionId !== input.expectedActiveProgramId ||
+            storedBlock.structureId !== input.program.structureId ||
+            input.completedBlock.id !== storedBlock.id ||
+            input.completedBlock.status !== "completed" ||
+            input.completedBlock.initialProgramVersionId !== storedBlock.initialProgramVersionId ||
+            input.completedBlock.currentProgramVersionId !== storedBlock.currentProgramVersionId ||
+            input.completedBlock.revision !== storedBlock.revision + 1 ||
+            input.nextBlock.status !== "active" ||
+            input.nextBlock.blockNumber !== storedBlock.blockNumber + 1 ||
+            input.nextBlock.structureId !== storedBlock.structureId ||
+            input.nextBlock.initialProgramVersionId !== input.program.id ||
+            input.nextBlock.currentProgramVersionId !== input.program.id ||
+            input.profile.id !== pointer.value.profileId ||
+            input.program.profileId !== input.profile.id
+          ) {
+            throw new LiftPathV5Error("VALIDATION_ERROR", "Goal transition state is inconsistent");
+          }
+
+          const existingProgram = await tx.get<ProgramVersion>("programVersions", input.program.id);
+          const existingBlock = await tx.get<TrainingBlock>("trainingBlocks", input.nextBlock.id);
+          if (existingProgram || existingBlock) {
+            throw new LiftPathV5Error("VALIDATION_ERROR", "Goal transition target ids already exist");
+          }
+
+          const nextPointer: ActiveProgramPointer = {
+            ...pointer,
+            value: { profileId: input.profile.id, programVersionId: input.program.id },
+            updatedAt: input.program.updatedAt,
+            revision: pointer.revision + 1,
+          };
+
+          await tx.put("trainingBlocks", input.completedBlock);
+          await tx.put("profiles", input.profile);
+          await tx.put("programVersions", input.program);
+          await tx.put("trainingBlocks", input.nextBlock);
+          await tx.put("metadata", nextPointer);
         },
       );
     },
