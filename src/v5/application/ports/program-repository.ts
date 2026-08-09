@@ -7,7 +7,7 @@ import type { TrainingBlock } from "../../domain/programming/training-block.js";
 export interface ProgramRepository {
   save(program: ProgramVersion): Promise<void>;
   get(id: EntityId): Promise<ProgramVersion | undefined>;
-  activateInitial(profile: TrainingProfile, program: ProgramVersion): Promise<void>;
+  activateInitial(profile: TrainingProfile, program: ProgramVersion, block: TrainingBlock): Promise<void>;
   getActive(): Promise<ProgramVersion | undefined>;
 }
 
