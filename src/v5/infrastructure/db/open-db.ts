@@ -1,4 +1,6 @@
 import {
+  READINESS_CREATED_AT_INDEX,
+  READINESS_SESSION_INDEX,
   RECOMMENDATION_CREATED_AT_INDEX,
   RECOMMENDATION_STATE_INDEX,
   SESSION_STATUS_INDEX,
@@ -41,6 +43,14 @@ export function openLiftPathV5Db(): Promise<IDBDatabase> {
       }
       if (!recommendations.indexNames.contains(RECOMMENDATION_CREATED_AT_INDEX)) {
         recommendations.createIndex(RECOMMENDATION_CREATED_AT_INDEX, "createdAt", { unique: false });
+      }
+
+      const readinessEntries = upgradeTransaction.objectStore("readinessEntries");
+      if (!readinessEntries.indexNames.contains(READINESS_SESSION_INDEX)) {
+        readinessEntries.createIndex(READINESS_SESSION_INDEX, "sessionId", { unique: true });
+      }
+      if (!readinessEntries.indexNames.contains(READINESS_CREATED_AT_INDEX)) {
+        readinessEntries.createIndex(READINESS_CREATED_AT_INDEX, "createdAt", { unique: false });
       }
     };
 
