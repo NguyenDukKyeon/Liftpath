@@ -1,36 +1,30 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { CATALOG_SEED } from "../domain/exercises/catalog-seed.js";
 import {
   loadStorageHealth as loadDefaultStorageHealth,
   type StorageHealth,
   type StorageHealthLoader,
 } from "../application/backup/storage-health.js";
-import { acceptRecommendation } from "../application/coaching/accept-recommendation.js";
-import { skipRecommendation } from "../application/coaching/skip-recommendation.js";
-import { activateProgram } from "../application/programs/activate-program.js";
-import { completeSet, type CompleteSetInput } from "../application/workouts/complete-set.js";
-import { completeWorkout } from "../application/workouts/complete-workout.js";
-import { resumeWorkout } from "../application/workouts/resume-workout.js";
-import { startWorkout } from "../application/workouts/start-workout.js";
+import type { CompleteSetInput } from "../application/workouts/complete-set.js";
 import { LiftPathV5Error } from "../domain/common/errors.js";
 import type { CoachRecommendation } from "../domain/coaching/recommendation.js";
+import type { ExerciseMetadata } from "../domain/exercises/exercise.js";
 import type { ProgramProposal } from "../domain/programming/prescription.js";
 import type { TrainingProfileDraft } from "../domain/programming/profile.js";
 import type { ProgramVersion, PrescribedSet } from "../domain/programming/program.js";
 import type { CompletedSet } from "../domain/training/set.js";
 import type { TrainingSession } from "../domain/training/session.js";
-import { createProgramRepository } from "../infrastructure/repositories/program-repository.js";
-import { createRecommendationRepository } from "../infrastructure/repositories/recommendation-repository.js";
-import { createSessionRepository } from "../infrastructure/repositories/session-repository.js";
 import { CoachRecommendationCard } from "../presentation/components/CoachRecommendationCard.js";
 import { OnboardingFlow } from "../presentation/onboarding/OnboardingFlow.js";
 import { WorkoutMode } from "../presentation/workout/WorkoutMode.js";
 import type { SetValues } from "../presentation/workout/SetLogger.js";
+import { createV5Services } from "./create-v5-services.js";
 import { installPreviewDiagnostics } from "./preview-diagnostics.js";
+import type { V5Services } from "./v5-services.js";
 
 interface V5PreviewAppProps {
   loadStorageHealth?: StorageHealthLoader;
   workoutMode?: ReactNode;
+  services?: V5Services;
 }
 
 interface ActiveWorkoutView {
@@ -75,9 +69,6 @@ const PREVIEW_PROGRAM: ProgramVersion = {
   revision: 1,
 };
 
-const browserClock = { now: () => new Date().toISOString() } as const;
-const browserIds = { next: (prefix: string) => `${prefix}-${crypto.randomUUID()}` } as const;
-
 function storageFailure(error: unknown): StorageHealth {
   const detail = error instanceof LiftPathV5Error ? error.message : "Unknown storage failure";
   return { status: "error", message: detail };
@@ -91,12 +82,16 @@ function isWorkoutCoreDemo(search: string): boolean {
   return new URLSearchParams(search).get("demo") === "workout-core";
 }
 
-function exerciseName(exerciseId: string): string {
-  return CATALOG_SEED.find((exercise) => exercise.id === exerciseId)?.name ??
+function exerciseName(catalog: readonly ExerciseMetadata[], exerciseId: string): string {
+  return catalog.find((exercise) => exercise.id === exerciseId)?.name ??
     (exerciseId === PREVIEW_EXERCISE_ID ? PREVIEW_EXERCISE_NAME : exerciseId);
 }
 
-function flattenPlan(program: ProgramVersion, sessionKey: string): PlannedSet[] {
+function flattenPlan(
+  catalog: readonly ExerciseMetadata[],
+  program: ProgramVersion,
+  sessionKey: string,
+): PlannedSet[] {
   const session = program.sessions.find((candidate) => candidate.key === sessionKey);
   if (!session) throw new LiftPathV5Error("CORRUPTED_DATA", `Missing session ${sessionKey}`);
 
@@ -107,7 +102,7 @@ function flattenPlan(program: ProgramVersion, sessionKey: string): PlannedSet[] 
         .sort((left, right) => left.ordinal - right.ordinal)
         .map((prescription) => ({
           exerciseId: exercise.exerciseId,
-          exerciseName: exerciseName(exercise.exerciseId),
+          exerciseName: exerciseName(catalog, exercise.exerciseId),
           prescription,
         })),
     );
@@ -135,7 +130,9 @@ function completedValues(set: CompletedSet | undefined): SetValues | undefined {
 export function V5PreviewApp({
   loadStorageHealth = loadDefaultStorageHealth,
   workoutMode,
+  services: providedServices,
 }: V5PreviewAppProps = {}) {
+  const services = useMemo(() => providedServices ?? createV5Services(), [providedServices]);
   const [storageHealth, setStorageHealth] = useState<StorageHealth | null>(null);
   const [storageAttempt, setStorageAttempt] = useState(0);
   const [activeProgram, setActiveProgram] = useState<ProgramVersion | null>(null);
@@ -188,18 +185,15 @@ export function V5PreviewApp({
 
     void (async () => {
       try {
-        const sessions = createSessionRepository();
-        const programs = createProgramRepository();
-        const recommendations = createRecommendationRepository();
         const [resumed, pendingRecommendations] = await Promise.all([
-          resumeWorkout(sessions),
-          recommendations.listPending(),
+          services.workouts.resume(),
+          services.coach.listPending(),
         ]);
         if (!active) return;
         setCoachRecommendations(pendingRecommendations);
 
         if (resumed) {
-          const program = await programs.get(resumed.session.programVersionId);
+          const program = await services.programs.get(resumed.session.programVersionId);
           if (!program) {
             throw new LiftPathV5Error(
               "CORRUPTED_DATA",
@@ -213,7 +207,7 @@ export function V5PreviewApp({
           return;
         }
 
-        const program = workoutCoreDemo ? PREVIEW_PROGRAM : await programs.getActive();
+        const program = workoutCoreDemo ? PREVIEW_PROGRAM : await services.programs.getActive();
         if (!active) return;
         setActiveProgram(program ?? null);
         setWorkout(null);
@@ -228,11 +222,14 @@ export function V5PreviewApp({
     return () => {
       active = false;
     };
-  }, [canUseV5Storage, databaseInfo, workoutCoreDemo, workoutMode]);
+  }, [canUseV5Storage, databaseInfo, services, workoutCoreDemo, workoutMode]);
 
   const plan = useMemo(
-    () => (workout ? flattenPlan(workout.program, workout.session.sessionKey) : []),
-    [workout],
+    () =>
+      workout
+        ? flattenPlan(services.catalog, workout.program, workout.session.sessionKey)
+        : [],
+    [services, workout],
   );
   const completedKeys = useMemo(
     () => new Set(workout?.sets.map((set) => setKey(set.exerciseId, set.setOrdinal)) ?? []),
@@ -249,18 +246,14 @@ export function V5PreviewApp({
     : undefined;
 
   async function refreshPendingRecommendations(): Promise<void> {
-    setCoachRecommendations(await createRecommendationRepository().listPending());
+    setCoachRecommendations(await services.coach.listPending());
   }
 
   async function activateApprovedProgram(
     proposal: ProgramProposal,
     profile: TrainingProfileDraft,
   ): Promise<void> {
-    const activated = await activateProgram(proposal, profile, {
-      programs: createProgramRepository(),
-      ids: browserIds,
-      clock: browserClock,
-    });
+    const activated = await services.programs.activate(proposal, profile);
     setActiveProgram(activated.program);
     setWorkoutCompleted(false);
     setWorkoutError(null);
@@ -272,15 +265,9 @@ export function V5PreviewApp({
     setWorkoutError(null);
     setModifyRequestId(null);
     try {
-      const recommendations = createRecommendationRepository();
-      const nextProgram = await acceptRecommendation(id, {
-        programs: createProgramRepository(),
-        recommendations,
-        ids: browserIds,
-        clock: browserClock,
-      });
+      const nextProgram = await services.coach.accept(id);
       if (nextProgram) setActiveProgram(nextProgram);
-      setCoachRecommendations(await recommendations.listPending());
+      setCoachRecommendations(await services.coach.listPending());
     } catch (error: unknown) {
       setWorkoutError(errorMessage(error));
     } finally {
@@ -294,9 +281,8 @@ export function V5PreviewApp({
     setWorkoutError(null);
     setModifyRequestId(null);
     try {
-      const recommendations = createRecommendationRepository();
-      await skipRecommendation(id, { recommendations, clock: browserClock });
-      setCoachRecommendations(await recommendations.listPending());
+      await services.coach.skip(id);
+      setCoachRecommendations(await services.coach.listPending());
     } catch (error: unknown) {
       setWorkoutError(errorMessage(error));
     } finally {
@@ -322,15 +308,10 @@ export function V5PreviewApp({
     setWorkoutError(null);
     setWorkoutCompleted(false);
     try {
-      const programs = createProgramRepository();
-      if (workoutCoreDemo) await programs.save(PREVIEW_PROGRAM);
-      const sessions = createSessionRepository();
-      const session = await startWorkout({
+      if (workoutCoreDemo) await services.programs.save(PREVIEW_PROGRAM);
+      const session = await services.workouts.start({
         programVersion: activeProgram,
         sessionKey: firstSession.key,
-        sessions,
-        ids: browserIds,
-        clock: browserClock,
       });
       setWorkout({ session, sets: [], program: activeProgram });
     } catch (error: unknown) {
@@ -341,13 +322,7 @@ export function V5PreviewApp({
   }
 
   async function commitSet(input: CompleteSetInput): Promise<CompletedSet> {
-    const sessions = createSessionRepository();
-    const completed = await completeSet({
-      input,
-      sessions,
-      ids: browserIds,
-      clock: browserClock,
-    });
+    const completed = await services.workouts.completeSet(input);
     setWorkout((currentWorkout) =>
       currentWorkout && currentWorkout.session.id === completed.sessionId
         ? { ...currentWorkout, sets: [...currentWorkout.sets, completed] }
@@ -360,8 +335,7 @@ export function V5PreviewApp({
     if (!workout || completedCount < plan.length || plan.length === 0) {
       throw new LiftPathV5Error("VALIDATION_ERROR", "All prescribed sets must be saved first");
     }
-    const sessions = createSessionRepository();
-    await completeWorkout(workout.session.id, sessions, browserClock);
+    await services.workouts.completeWorkout(workout.session.id);
     setWorkout(null);
     setWorkoutCompleted(true);
     await refreshPendingRecommendations();
@@ -397,7 +371,7 @@ export function V5PreviewApp({
 
               {workoutReady && !workout && !activeProgram && (
                 <OnboardingFlow
-                  catalog={[...CATALOG_SEED]}
+                  catalog={[...services.catalog]}
                   onActivate={activateApprovedProgram}
                 />
               )}
