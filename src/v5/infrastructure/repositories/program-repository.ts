@@ -5,6 +5,8 @@ import type { EntityId, VersionedRecord } from "../../domain/common/types.js";
 import type { CoachRecommendation } from "../../domain/coaching/recommendation.js";
 import type { TrainingProfile } from "../../domain/programming/profile.js";
 import type { ProgramVersion } from "../../domain/programming/program.js";
+import { advanceTrainingBlockProgram, type TrainingBlock } from "../../domain/programming/training-block.js";
+import { BLOCK_STATUS_INDEX } from "../db/constants.js";
 import { createIndexedDbDatabase } from "./indexed-db-database.js";
 
 const ACTIVE_PROGRAM_METADATA_ID = "active-program";
@@ -82,7 +84,7 @@ export function createProgramRepository(
       recommendation: CoachRecommendation,
     ): Promise<void> {
       await database.transaction(
-        ["programVersions", "recommendations", "metadata"],
+        ["programVersions", "recommendations", "metadata", "trainingBlocks"],
         "readwrite",
         async (tx) => {
           const pointer = await tx.get<ActiveProgramPointer>("metadata", ACTIVE_PROGRAM_METADATA_ID);
@@ -97,9 +99,28 @@ export function createProgramRepository(
             revision: pointer.revision + 1,
           };
 
+          const activeBlocks = await tx.getAllByIndex<TrainingBlock>(
+            "trainingBlocks",
+            BLOCK_STATUS_INDEX,
+            "active",
+          );
+          if (activeBlocks.length > 1) {
+            throw new LiftPathV5Error("CORRUPTED_DATA", "Multiple active training blocks found");
+          }
+
           await tx.put("programVersions", program);
           await tx.put("recommendations", recommendation);
           await tx.put("metadata", nextPointer);
+          const activeBlock = activeBlocks[0];
+          if (activeBlock) {
+            if (activeBlock.structureId !== program.structureId) {
+              throw new LiftPathV5Error("VALIDATION_ERROR", "Coach decision cannot change training structure");
+            }
+            await tx.put(
+              "trainingBlocks",
+              advanceTrainingBlockProgram(activeBlock, program.id, program.updatedAt),
+            );
+          }
         },
       );
     },
