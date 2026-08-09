@@ -2,6 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { validateReadinessEntry } from "../../../src/v5/domain/training/readiness.js";
 import type { ReadinessEntry } from "../../../src/v5/domain/training/readiness.js";
+import {
+  advanceTrainingBlockProgram,
+  completeTrainingBlock,
+  validateTrainingBlock,
+  type TrainingBlock,
+} from "../../../src/v5/domain/programming/training-block.js";
 
 function readiness(overrides: Partial<ReadinessEntry> = {}): ReadinessEntry {
   return {
@@ -12,6 +18,24 @@ function readiness(overrides: Partial<ReadinessEntry> = {}): ReadinessEntry {
     painExerciseIds: [],
     createdAt: "2026-08-09T00:15:00.000Z",
     updatedAt: "2026-08-09T00:15:00.000Z",
+    revision: 1,
+    ...overrides,
+  };
+}
+
+function block(overrides: Partial<TrainingBlock> = {}): TrainingBlock {
+  return {
+    id: "block-1",
+    blockNumber: 1,
+    status: "active",
+    goal: "hypertrophy",
+    primarySpecialization: "v_shape",
+    structureId: "upper-lower-4",
+    initialProgramVersionId: "program-1",
+    currentProgramVersionId: "program-1",
+    startedAt: "2026-08-09T00:00:00.000Z",
+    createdAt: "2026-08-09T00:00:00.000Z",
+    updatedAt: "2026-08-09T00:00:00.000Z",
     revision: 1,
     ...overrides,
   };
@@ -34,4 +58,24 @@ test("readiness entry rejects duplicate pain exercise ids", () => {
     () => validateReadinessEntry(readiness({ painExerciseIds: ["bench-press", "bench-press"] })),
     /duplicate pain exercise/i,
   );
+});
+
+test("training block keeps initial version immutable while current version advances", () => {
+  const next = advanceTrainingBlockProgram(block(), "program-2", "2026-08-10T00:00:00.000Z");
+  assert.equal(next.initialProgramVersionId, "program-1");
+  assert.equal(next.currentProgramVersionId, "program-2");
+  assert.equal(next.structureId, "upper-lower-4");
+  assert.equal(next.revision, 2);
+});
+
+test("completed training block requires completedAt", () => {
+  assert.throws(
+    () => validateTrainingBlock(block({ status: "completed" })),
+    /completedAt/i,
+  );
+
+  const completed = completeTrainingBlock(block(), "2026-08-12T00:00:00.000Z");
+  assert.equal(completed.status, "completed");
+  assert.equal(completed.completedAt, "2026-08-12T00:00:00.000Z");
+  assert.equal(completed.initialProgramVersionId, "program-1");
 });
