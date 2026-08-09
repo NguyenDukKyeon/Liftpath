@@ -3,9 +3,9 @@ import test from "node:test";
 import { validateExerciseCatalog } from "../../../src/v5/domain/exercises/catalog.js";
 import { EXERCISE_CATALOG_VERSION } from "../../../src/v5/domain/exercises/catalog-version.js";
 import { EXERCISE_CATALOG } from "../../../src/v5/domain/exercises/catalog-seed.js";
-import type { MuscleId } from "../../../src/v5/domain/exercises/exercise.js";
+import type { ExerciseMetadata, MuscleId } from "../../../src/v5/domain/exercises/exercise.js";
 import { createInitialPrescription } from "../../../src/v5/domain/programming/prescription-engine.js";
-import type { TrainingProfileDraft } from "../../../src/v5/domain/programming/profile.js";
+import type { TrainingProfile } from "../../../src/v5/domain/programming/profile.js";
 import {
   PHYSIQUE_SPECIALIZATIONS,
   STRENGTH_SPECIALIZATIONS,
@@ -52,8 +52,12 @@ const FOUR_DAY_STRUCTURE: StructureProposal = {
   score: 0,
 };
 
-function profile(goal: TrainingProfileDraft["goal"], specialization: SpecializationId): TrainingProfileDraft {
+function profile(goal: TrainingProfile["goal"], specialization: SpecializationId): TrainingProfile {
   return {
+    id: `catalog-${goal}-${specialization}`,
+    createdAt: "2026-08-10T00:00:00.000Z",
+    updatedAt: "2026-08-10T00:00:00.000Z",
+    revision: 1,
     level: "intermediate",
     goal,
     primarySpecialization: specialization,
@@ -73,17 +77,19 @@ test("production exercise catalog is versioned, deterministic, unique, and bound
   assert.ok(EXERCISE_CATALOG.length <= 200);
   assert.doesNotThrow(() => validateExerciseCatalog(EXERCISE_CATALOG));
 
-  const ids = EXERCISE_CATALOG.map((exercise) => exercise.id);
+  const ids = EXERCISE_CATALOG.map((exercise: ExerciseMetadata) => exercise.id);
   assert.deepEqual(ids, [...ids].sort((left, right) => left.localeCompare(right)));
   assert.equal(new Set(ids).size, ids.length);
 
-  const names = EXERCISE_CATALOG.map((exercise) => exercise.name.trim().toLocaleLowerCase("en-US"));
+  const names = EXERCISE_CATALOG.map((exercise: ExerciseMetadata) =>
+    exercise.name.trim().toLocaleLowerCase("en-US"),
+  );
   assert.equal(new Set(names).size, names.length);
 });
 
 test("production catalog covers every training muscle and common equipment family", () => {
   for (const muscle of MUSCLES) {
-    const coverage = EXERCISE_CATALOG.filter((exercise) =>
+    const coverage = EXERCISE_CATALOG.filter((exercise: ExerciseMetadata) =>
       exercise.primaryMuscles.includes(muscle) || exercise.secondaryMuscles.includes(muscle),
     );
     assert.ok(coverage.length >= 3, `${muscle} needs at least three catalog exercises`);
@@ -91,16 +97,16 @@ test("production catalog covers every training muscle and common equipment famil
 
   for (const equipment of ["barbell", "dumbbell", "cable", "machine"] as const) {
     assert.ok(
-      EXERCISE_CATALOG.some((exercise) => exercise.equipment.includes(equipment)),
+      EXERCISE_CATALOG.some((exercise: ExerciseMetadata) => exercise.equipment.includes(equipment)),
       `${equipment} must be represented`,
     );
   }
-  assert.ok(EXERCISE_CATALOG.some((exercise) => exercise.kind === "bodyweight"));
+  assert.ok(EXERCISE_CATALOG.some((exercise: ExerciseMetadata) => exercise.kind === "bodyweight"));
 });
 
 test("every V1 physique and strength specialization can generate from the production catalog", () => {
-  const catalogIds = new Set(EXERCISE_CATALOG.map((exercise) => exercise.id));
-  const scenarios: Array<[TrainingProfileDraft["goal"], SpecializationId]> = [
+  const catalogIds = new Set(EXERCISE_CATALOG.map((exercise: ExerciseMetadata) => exercise.id));
+  const scenarios: ReadonlyArray<readonly [TrainingProfile["goal"], SpecializationId]> = [
     ...PHYSIQUE_SPECIALIZATIONS.map((specialization) => ["hypertrophy", specialization] as const),
     ...STRENGTH_SPECIALIZATIONS.map((specialization) => ["strength", specialization] as const),
   ];
@@ -109,7 +115,7 @@ test("every V1 physique and strength specialization can generate from the produc
     const proposal = createInitialPrescription({
       profile: profile(goal, specialization),
       structure: FOUR_DAY_STRUCTURE,
-      catalog: EXERCISE_CATALOG,
+      catalog: [...EXERCISE_CATALOG],
     });
     const exercises = proposal.sessions.flatMap((session) => session.exercises);
     assert.ok(exercises.length > 0, `${goal}/${specialization} must generate exercises`);
