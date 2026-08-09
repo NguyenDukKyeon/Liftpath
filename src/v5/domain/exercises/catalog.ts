@@ -31,12 +31,19 @@ function validateExercise(exercise: ExerciseMetadata): void {
 
 export function validateExerciseCatalog(catalog: readonly ExerciseMetadata[]): void {
   const ids = new Set<string>();
+  const names = new Set<string>();
   for (const exercise of catalog) {
     validateExercise(exercise);
     if (ids.has(exercise.id)) {
       throw new LiftPathV5Error("VALIDATION_ERROR", `Duplicate exercise id: ${exercise.id}`);
     }
     ids.add(exercise.id);
+
+    const normalizedName = exercise.name.trim().toLocaleLowerCase("en-US");
+    if (names.has(normalizedName)) {
+      throw new LiftPathV5Error("VALIDATION_ERROR", `Duplicate exercise name: ${exercise.name}`);
+    }
+    names.add(normalizedName);
   }
 }
 
