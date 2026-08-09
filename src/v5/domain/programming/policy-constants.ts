@@ -5,7 +5,7 @@ import type { PrimaryGoal, TrainingLevel } from "./goals.js";
  * V1 programming heuristics. These values are bounded prescription policy,
  * not claims of universal physiological set requirements.
  */
-export const PROGRAMMING_POLICY_VERSION: PolicyVersion = "1.0.0";
+export const PROGRAMMING_POLICY_VERSION: PolicyVersion = "1.1.0";
 export const INDIRECT_SET_CREDIT = 0.5;
 export const BEGINNER_SPECIALIZATION_SET_CEILING = 14;
 
