@@ -1,10 +1,17 @@
 import type { BlockRepository } from "../../application/ports/block-repository.js";
 import type { V5Database } from "../../application/ports/storage.js";
 import { LiftPathV5Error } from "../../domain/common/errors.js";
-import type { EntityId } from "../../domain/common/types.js";
+import type { EntityId, ISODateTime, VersionedRecord } from "../../domain/common/types.js";
+import type { BlockReview } from "../../domain/programming/block-review.js";
 import type { TrainingBlock } from "../../domain/programming/training-block.js";
 import { BLOCK_STATUS_INDEX } from "../db/constants.js";
 import { createIndexedDbDatabase } from "./indexed-db-database.js";
+
+interface BlockReviewRecord extends VersionedRecord {
+  value: BlockReview;
+}
+
+const reviewId = (blockId: EntityId) => `block-review:${blockId}`;
 
 function indexedQuery(database: V5Database): NonNullable<V5Database["getAllByIndex"]> {
   if (!database.getAllByIndex) {
@@ -58,6 +65,28 @@ export function createBlockRepository(
       await database.transaction(["trainingBlocks"], "readwrite", async (tx) => {
         await tx.put("trainingBlocks", block);
       });
+    },
+
+    async saveReview(review: BlockReview, recordedAt: ISODateTime): Promise<void> {
+      await database.transaction(["metadata"], "readwrite", async (tx) => {
+        const id = reviewId(review.blockId);
+        const existing = await tx.get<BlockReviewRecord>("metadata", id);
+        const record: BlockReviewRecord = {
+          id,
+          value: review,
+          createdAt: existing?.createdAt ?? recordedAt,
+          updatedAt: recordedAt,
+          revision: (existing?.revision ?? 0) + 1,
+        };
+        await tx.put("metadata", record);
+      });
+    },
+
+    async getReview(blockId: EntityId): Promise<BlockReview | undefined> {
+      const record = await database.transaction(["metadata"], "readonly", (tx) =>
+        tx.get<BlockReviewRecord>("metadata", reviewId(blockId)),
+      );
+      return record?.value;
     },
   };
 }
