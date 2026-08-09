@@ -1,0 +1,70 @@
+.v5-workout-mode {
+  width: min(100%, 42rem);
+  margin: 2rem auto 0;
+  padding: 1.25rem;
+  border: 1px solid currentColor;
+  border-radius: 1rem;
+}
+
+.v5-workout-mode__header {
+  display: grid;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.v5-workout-mode__header h2,
+.v5-workout-mode__header p {
+  margin: 0;
+}
+
+.v5-workout-mode__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.v5-set-logger {
+  display: grid;
+  gap: 1rem;
+}
+
+.v5-set-logger__previous {
+  margin: 0;
+  opacity: 0.8;
+}
+
+.v5-set-logger__fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.v5-set-logger__fields label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.v5-set-logger__fields input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.65rem;
+  font: inherit;
+}
+
+.v5-set-logger__primary {
+  min-height: 3rem;
+  font: inherit;
+  font-weight: 800;
+}
+
+.v5-set-logger__saved {
+  margin: 0;
+  font-weight: 700;
+}
+
+@media (max-width: 34rem) {
+  .v5-set-logger__fields {
+    grid-template-columns: 1fr;
+  }
+}
