@@ -1,0 +1,140 @@
+import type { SessionRepository } from "../../application/ports/session-repository.js";
+import type { V5Database } from "../../application/ports/storage.js";
+import { LiftPathV5Error } from "../../domain/common/errors.js";
+import type { EntityId, ISODateTime } from "../../domain/common/types.js";
+import type { CompletedSet } from "../../domain/training/set.js";
+import type { TrainingSession } from "../../domain/training/session.js";
+import { SESSION_STATUS_INDEX, SET_SESSION_INDEX } from "../db/constants.js";
+import { createIndexedDbDatabase } from "./indexed-db-database.js";
+
+function indexedQuery(database: V5Database): NonNullable<V5Database["getAllByIndex"]> {
+  if (!database.getAllByIndex) {
+    throw new LiftPathV5Error("STORAGE_ERROR", "Indexed workout queries are unavailable");
+  }
+  return database.getAllByIndex.bind(database);
+}
+
+function rejectExistingActive(matches: TrainingSession[]): void {
+  if (matches.length > 1) {
+    throw new LiftPathV5Error("CORRUPTED_DATA", "Multiple active workout sessions found");
+  }
+  if (matches.length === 1) {
+    throw new LiftPathV5Error(
+      "VALIDATION_ERROR",
+      "An active workout already exists; resume or cancel it before starting another",
+    );
+  }
+}
+
+export function createSessionRepository(
+  database: V5Database = createIndexedDbDatabase(),
+): SessionRepository {
+  return {
+    async create(session: TrainingSession): Promise<void> {
+      await database.transaction(["sessions"], "readwrite", async (tx) => {
+        await tx.put("sessions", session);
+      });
+    },
+
+    async createIfNoActive(session: TrainingSession): Promise<void> {
+      await database.transaction(["sessions"], "readwrite", async (tx) => {
+        const active = await tx.getAllByIndex<TrainingSession>(
+          "sessions",
+          SESSION_STATUS_INDEX,
+          "active",
+        );
+        rejectExistingActive(active);
+        await tx.put("sessions", session);
+      });
+    },
+
+    async update(session: TrainingSession): Promise<void> {
+      await database.transaction(["sessions"], "readwrite", async (tx) => {
+        await tx.put("sessions", session);
+      });
+    },
+
+    async completeIfActive(
+      sessionId: EntityId,
+      completedAt: ISODateTime,
+    ): Promise<TrainingSession> {
+      return database.transaction(["sessions"], "readwrite", async (tx) => {
+        const session = await tx.get<TrainingSession>("sessions", sessionId);
+        if (!session || session.status !== "active") {
+          throw new LiftPathV5Error(
+            "VALIDATION_ERROR",
+            "Workout completion requires an active session",
+          );
+        }
+
+        const completed: TrainingSession = {
+          ...session,
+          status: "completed",
+          completedAt,
+          updatedAt: completedAt,
+          revision: session.revision + 1,
+        };
+        await tx.put("sessions", completed);
+        return completed;
+      });
+    },
+
+    async get(id: EntityId): Promise<TrainingSession | undefined> {
+      return database.transaction(["sessions"], "readonly", (tx) =>
+        tx.get<TrainingSession>("sessions", id),
+      );
+    },
+
+    async getActive(): Promise<TrainingSession | undefined> {
+      const matches = await indexedQuery(database)<TrainingSession>(
+        "sessions",
+        SESSION_STATUS_INDEX,
+        "active",
+      );
+      if (matches.length > 1) {
+        throw new LiftPathV5Error("CORRUPTED_DATA", "Multiple active workout sessions found");
+      }
+      return matches[0];
+    },
+
+    async listSets(sessionId: EntityId): Promise<CompletedSet[]> {
+      const matches = await indexedQuery(database)<CompletedSet>(
+        "sets",
+        SET_SESSION_INDEX,
+        sessionId,
+      );
+      return matches.sort(
+        (left, right) => left.setOrdinal - right.setOrdinal || left.id.localeCompare(right.id),
+      );
+    },
+
+    async saveSet(set: CompletedSet): Promise<void> {
+      await database.transaction(["sessions", "sets"], "readwrite", async (tx) => {
+        const session = await tx.get<TrainingSession>("sessions", set.sessionId);
+        if (!session || session.status !== "active") {
+          throw new LiftPathV5Error(
+            "VALIDATION_ERROR",
+            "Set completion requires an active workout session",
+          );
+        }
+
+        const sessionSets = await tx.getAllByIndex<CompletedSet>(
+          "sets",
+          SET_SESSION_INDEX,
+          set.sessionId,
+        );
+        const duplicate = sessionSets.some(
+          (candidate) =>
+            candidate.exerciseId === set.exerciseId && candidate.setOrdinal === set.setOrdinal,
+        );
+        if (duplicate) {
+          throw new LiftPathV5Error(
+            "VALIDATION_ERROR",
+            "This workout set has already been committed",
+          );
+        }
+        await tx.put("sets", set);
+      });
+    },
+  };
+}
