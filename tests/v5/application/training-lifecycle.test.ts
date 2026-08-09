@@ -2,9 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { ReadinessRepository } from "../../../src/v5/application/ports/readiness-repository.js";
 import { buildCoachContextWithPersistedReadiness } from "../../../src/v5/application/coaching/evaluate-coach.js";
+import { buildProgramPreview } from "../../../src/v5/application/programs/build-program-preview.js";
+import { proposeGoalTransition } from "../../../src/v5/application/programs/propose-goal-transition.js";
 import { recordReadiness } from "../../../src/v5/application/workouts/record-readiness.js";
 import { LiftPathV5Error } from "../../../src/v5/domain/common/errors.js";
 import type { CoachContext } from "../../../src/v5/domain/coaching/context.js";
+import { CATALOG_SEED } from "../../../src/v5/domain/exercises/catalog-seed.js";
+import type { TrainingProfileDraft } from "../../../src/v5/domain/programming/profile.js";
+import type { ProgramVersion } from "../../../src/v5/domain/programming/program.js";
 import type { ReadinessEntry } from "../../../src/v5/domain/training/readiness.js";
 import type { TrainingSession } from "../../../src/v5/domain/training/session.js";
 
@@ -41,6 +46,41 @@ function session(status: TrainingSession["status"] = "active"): TrainingSession 
 
 const clock = { now: () => "2026-08-09T00:15:00.000Z" } as const;
 const ids = { next: (prefix: string) => `${prefix}-1` } as const;
+
+const broadEquipment = ["barbell", "rack", "bench", "dumbbell", "cable", "machine"];
+
+function profile(overrides: Partial<TrainingProfileDraft> = {}): TrainingProfileDraft {
+  return {
+    level: "beginner",
+    goal: "hypertrophy",
+    primarySpecialization: "v_shape",
+    constraints: {
+      daysPerWeek: 4,
+      sessionMinutes: 60,
+      equipment: [...broadEquipment],
+      dislikedExerciseIds: [],
+      restrictedMovementPatterns: [],
+    },
+    ...overrides,
+  };
+}
+
+function currentProgram(): ProgramVersion {
+  const preview = buildProgramPreview(profile(), "upper-lower-4", { catalog: [...CATALOG_SEED] });
+  return {
+    id: "program-current",
+    versionNumber: 3,
+    name: preview.name,
+    sessions: preview.sessions,
+    profileId: "profile-1",
+    policyVersion: preview.policyVersion,
+    structureId: preview.structureId,
+    rationale: preview.rationale,
+    createdAt: "2026-08-01T00:00:00.000Z",
+    updatedAt: "2026-08-01T00:00:00.000Z",
+    revision: 1,
+  };
+}
 
 test("record readiness persists only for an active known session", async () => {
   const readiness = new MemoryReadiness();
@@ -109,16 +149,7 @@ test("CoachContext readiness is rebuilt from a bounded persisted window", async 
       createdAt: "2026-08-01T00:00:00.000Z",
       updatedAt: "2026-08-01T00:00:00.000Z",
       revision: 1,
-      level: "beginner",
-      goal: "hypertrophy",
-      primarySpecialization: "v_shape",
-      constraints: {
-        daysPerWeek: 4,
-        sessionMinutes: 60,
-        equipment: ["cable"],
-        dislikedExerciseIds: [],
-        restrictedMovementPatterns: [],
-      },
+      ...profile({ constraints: { ...profile().constraints, equipment: ["cable"] } }),
     },
     activeProgram: {
       id: "program-1",
@@ -145,4 +176,42 @@ test("CoachContext readiness is rebuilt from a bounded persisted window", async 
   assert.equal(context.readiness[0]?.sessionId, "session-8");
   assert.deepEqual(context.readiness[0]?.painExerciseIds, ["bench-press"]);
   assert.equal(context.readiness.some((entry) => entry.sessionId === "session-1"), false);
+});
+
+test("V-Shape to Arms transition keeps the selected structure and retains compatible movements", () => {
+  const current = currentProgram();
+  const proposal = proposeGoalTransition(current, profile(), profile({ primarySpecialization: "arms" }), {
+    catalog: [...CATALOG_SEED],
+  });
+
+  assert.equal(proposal.program.structureId, current.structureId);
+  assert.equal(proposal.program.sessions.length, current.sessions.length);
+  assert.deepEqual(proposal.program.sessions.map((session) => session.key), current.sessions.map((session) => session.key));
+  assert.ok(proposal.retainedExerciseIds.length > 0);
+});
+
+test("V-Shape hypertrophy to Strength plus Bench retains shared suitable movements", () => {
+  const current = currentProgram();
+  const proposal = proposeGoalTransition(
+    current,
+    profile(),
+    profile({ goal: "strength", primarySpecialization: "bench" }),
+    { catalog: [...CATALOG_SEED] },
+  );
+
+  assert.equal(proposal.program.structureId, "upper-lower-4");
+  assert.ok(proposal.retainedExerciseIds.includes("barbell-bench-press"));
+  assert.equal(proposal.source, "user_goal_change");
+});
+
+test("goal transition rejects a requested structure change", () => {
+  assert.throws(
+    () => proposeGoalTransition(
+      currentProgram(),
+      profile(),
+      profile({ primarySpecialization: "arms" }),
+      { catalog: [...CATALOG_SEED], requestedStructureId: "torso-lower-4" },
+    ),
+    /structure/i,
+  );
 });
