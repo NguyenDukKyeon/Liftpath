@@ -19,6 +19,12 @@ const PRIORITY_WEIGHT: Record<MusclePriority, number> = {
 };
 
 const LOWER_MUSCLES = new Set<MuscleId>(["quads", "hamstrings", "glutes", "calves"]);
+const CANONICAL_STRENGTH_LIFTS: Partial<Record<PrescriptionInput["profile"]["primarySpecialization"], string>> = {
+  bench: "barbell-bench-press",
+  squat: "barbell-back-squat",
+  deadlift: "conventional-deadlift",
+  overhead_press: "barbell-overhead-press",
+};
 
 function emptyWorkload(): Record<MuscleId, number> {
   return Object.fromEntries(ALL_MUSCLES.map((muscle) => [muscle, 0])) as Record<MuscleId, number>;
@@ -144,6 +150,17 @@ function exerciseNeedScore(
   return score;
 }
 
+function canonicalStrengthLiftBonus(
+  input: PrescriptionInput,
+  exercise: ExerciseMetadata,
+  exposureCount: number,
+): number {
+  if (input.profile.goal !== "strength" || exposureCount >= 2) return 0;
+  const canonicalId = CANONICAL_STRENGTH_LIFTS[input.profile.primarySpecialization];
+  if (!canonicalId || exercise.id !== canonicalId) return 0;
+  return exposureCount === 0 ? 60 : 40;
+}
+
 function chooseSetCount(
   exercise: ExerciseMetadata,
   priorities: MusclePriorityMap,
@@ -226,9 +243,12 @@ export function createInitialPrescription(input: PrescriptionInput): ProgramProp
       .map((exercise) => {
         const sessionIndex = chooseSessionIndex(sessions, exercise, perSessionLimit);
         const exposureCount = exposures.get(exercise.id) ?? 0;
-        const score = sessionIndex === undefined
+        const baseScore = sessionIndex === undefined
           ? Number.NEGATIVE_INFINITY
           : exerciseNeedScore(exercise, priorities, targets, workload, exposureCount, input.profile.level);
+        const score = Number.isFinite(baseScore)
+          ? baseScore + canonicalStrengthLiftBonus(input, exercise, exposureCount)
+          : baseScore;
         return { exercise, sessionIndex, score };
       })
       .filter((candidate) => candidate.sessionIndex !== undefined && candidate.score > 0)
