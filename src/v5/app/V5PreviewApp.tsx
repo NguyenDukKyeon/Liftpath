@@ -422,6 +422,7 @@ export function V5PreviewApp({
                     prescribed={prescribedValues(current.prescription)}
                     previous={completedValues(previous)}
                     onCompleteSet={commitSet}
+                    clock={services.clock}
                     completedSetCount={completedCount}
                     totalSetCount={plan.length}
                     onCompleteWorkout={finishWorkout}
