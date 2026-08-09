@@ -8,6 +8,7 @@ import {
   type TrainingProfileDraft,
 } from "../../domain/programming/profile.js";
 import type { ProgramVersion } from "../../domain/programming/program.js";
+import { validateTrainingBlock, type TrainingBlock } from "../../domain/programming/training-block.js";
 
 export interface ActivateProgramDependencies {
   programs: ProgramRepository;
@@ -18,6 +19,7 @@ export interface ActivateProgramDependencies {
 export interface ActivatedProgram {
   profile: TrainingProfile;
   program: ProgramVersion;
+  block: TrainingBlock;
 }
 
 export async function activateProgram(
@@ -49,6 +51,7 @@ export async function activateProgram(
     policyVersion: proposal.policyVersion,
     structureId: proposal.structureId,
     rationale: [...proposal.rationale],
+    source: "initial",
     sessions: proposal.sessions.map((session) => ({
       ...session,
       exercises: session.exercises.map((exercise) => ({
@@ -61,6 +64,23 @@ export async function activateProgram(
     revision: 1,
   };
 
-  await dependencies.programs.activateInitial(profile, program);
-  return { profile, program };
+  const block: TrainingBlock = {
+    id: dependencies.ids.next("block"),
+    blockNumber: 1,
+    status: "active",
+    goal: profile.goal,
+    primarySpecialization: profile.primarySpecialization,
+    secondaryFocus: profile.secondaryFocus,
+    structureId: proposal.structureId,
+    initialProgramVersionId: program.id,
+    currentProgramVersionId: program.id,
+    startedAt: now,
+    createdAt: now,
+    updatedAt: now,
+    revision: 1,
+  };
+  validateTrainingBlock(block);
+
+  await dependencies.programs.activateInitial(profile, program, block);
+  return { profile, program, block };
 }
