@@ -8,6 +8,10 @@ import {
   verifyBackupRoundTrip,
   type BackupRoundTripResult,
 } from "./backup-roundtrip-diagnostic.js";
+import {
+  verifyTrainingLifecycleTransition,
+  type TrainingLifecycleDiagnosticResult,
+} from "./training-lifecycle-diagnostic.js";
 
 interface RollbackResult {
   caught: boolean;
@@ -35,6 +39,7 @@ interface CompletedSetProbeResult {
 interface V5PreviewDiagnostics {
   verifyTransactionRollback(): Promise<RollbackResult>;
   verifyBackupRoundTrip(): Promise<BackupRoundTripResult>;
+  verifyTrainingLifecycleTransition(): Promise<TrainingLifecycleDiagnosticResult>;
   seedWorkoutRepositoryReloadProbe(): Promise<WorkoutRepositoryReloadSeed>;
   readWorkoutRepositoryReloadProbe(): Promise<WorkoutRepositoryReloadRead>;
   completeSetReloadProbe(): Promise<CompletedSetProbeResult>;
@@ -181,6 +186,7 @@ export function installPreviewDiagnostics(search: string): () => void {
   window.__liftpathV5Diagnostics = {
     verifyTransactionRollback,
     verifyBackupRoundTrip,
+    verifyTrainingLifecycleTransition,
     seedWorkoutRepositoryReloadProbe,
     readWorkoutRepositoryReloadProbe,
     completeSetReloadProbe,
