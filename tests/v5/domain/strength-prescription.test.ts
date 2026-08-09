@@ -25,6 +25,7 @@ test("strength bench reference uses the shared prescription engine with increase
   const proposal = createInitialPrescription({ profile, structure, catalog: [...CATALOG_SEED] });
   const exerciseIds = proposal.sessions.flatMap((session) => session.exercises.map((exercise) => exercise.exerciseId));
 
+  assert.equal(proposal.policyVersion, "1.1.0");
   assert.equal(proposal.structureId, structure.id);
   assert.ok(exerciseIds.filter((id) => id === "barbell-bench-press").length >= 2);
   assert.ok(proposal.workloadByMuscle.chest > proposal.workloadByMuscle.lats);
