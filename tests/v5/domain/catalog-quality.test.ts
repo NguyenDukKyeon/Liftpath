@@ -72,7 +72,7 @@ function profile(goal: TrainingProfile["goal"], specialization: SpecializationId
 }
 
 test("production exercise catalog is versioned, deterministic, unique, and bounded", () => {
-  assert.match(EXERCISE_CATALOG_VERSION, /^v5-catalog-\d+$/);
+  assert.equal(EXERCISE_CATALOG_VERSION, "1.0.0");
   assert.ok(EXERCISE_CATALOG.length >= 100);
   assert.ok(EXERCISE_CATALOG.length <= 200);
   assert.doesNotThrow(() => validateExerciseCatalog(EXERCISE_CATALOG));
