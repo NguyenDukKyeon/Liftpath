@@ -8,6 +8,7 @@ import {
   validateTrainingBlock,
   type TrainingBlock,
 } from "../../../src/v5/domain/programming/training-block.js";
+import { reviewCompletedBlock } from "../../../src/v5/domain/programming/block-review.js";
 
 function readiness(overrides: Partial<ReadinessEntry> = {}): ReadinessEntry {
   return {
@@ -78,4 +79,36 @@ test("completed training block requires completedAt", () => {
   assert.equal(completed.status, "completed");
   assert.equal(completed.completedAt, "2026-08-12T00:00:00.000Z");
   assert.equal(completed.initialProgramVersionId, "program-1");
+});
+
+test("block review continues when adherence is complete and specialization trends improve", () => {
+  assert.equal(reviewCompletedBlock({
+    block: completeTrainingBlock(block(), "2026-08-12T00:00:00.000Z"),
+    adherence: "complete",
+    specializationTrends: { lats: "improving", side_delts: "improving" },
+    fatigueSignal: "normal",
+    evidenceIds: ["set-1", "set-2", "set-3"],
+  }).recommendation, "continue");
+});
+
+test("block review recommends deload before continuing only with broad regression and high fatigue", () => {
+  assert.equal(reviewCompletedBlock({
+    block: completeTrainingBlock(block(), "2026-08-12T00:00:00.000Z"),
+    adherence: "complete",
+    specializationTrends: { lats: "declining", side_delts: "declining", upper_back: "declining" },
+    fatigueSignal: "high",
+    evidenceIds: ["set-1", "set-2", "set-3", "set-4", "set-5"],
+  }).recommendation, "deload_then_continue");
+});
+
+test("block review proposes next-block adjustment without activating anything", () => {
+  const review = reviewCompletedBlock({
+    block: completeTrainingBlock(block(), "2026-08-12T00:00:00.000Z"),
+    adherence: "complete",
+    specializationTrends: { lats: "improving", side_delts: "stable" },
+    fatigueSignal: "normal",
+    evidenceIds: ["set-1", "set-2", "set-3"],
+  });
+  assert.equal(review.recommendation, "adjust_next_block");
+  assert.equal("programVersionId" in review, false);
 });
