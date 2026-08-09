@@ -3,7 +3,7 @@ import type { ISODateTime, VersionedRecord } from "../../domain/common/types.js"
 
 export const BACKUP_FORMAT = "liftpath-v5-backup" as const;
 export const BACKUP_FORMAT_VERSION = 1 as const;
-export const BACKUP_SCHEMA_VERSION = 1 as const;
+export const BACKUP_SCHEMA_VERSION = 2 as const;
 
 export const BACKUP_STORE_NAMES = [
   "metadata",
@@ -13,6 +13,8 @@ export const BACKUP_STORE_NAMES = [
   "sessionExercises",
   "sets",
   "recommendations",
+  "readinessEntries",
+  "trainingBlocks",
 ] as const satisfies readonly V5StoreName[];
 
 export type BackupStoreName = (typeof BACKUP_STORE_NAMES)[number];
