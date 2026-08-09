@@ -1,17 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { RecommendationRepository } from "../../../src/v5/application/ports/recommendation-repository.js";
-import { evaluateCoachForCompletedSession } from "../../../src/v5/application/coaching/evaluate-coach.js";
+import {
+  evaluateCoachForCompletedSession,
+  type CoachContextWithoutReadiness,
+} from "../../../src/v5/application/coaching/evaluate-coach.js";
 import { completeWorkout } from "../../../src/v5/application/workouts/complete-workout.js";
 import { LiftPathV5Error } from "../../../src/v5/domain/common/errors.js";
-import type { CoachContext } from "../../../src/v5/domain/coaching/context.js";
 import type { CoachRecommendation } from "../../../src/v5/domain/coaching/recommendation.js";
 import type { SessionRepository } from "../../../src/v5/application/ports/session-repository.js";
+import type { ReadinessEntry } from "../../../src/v5/domain/training/readiness.js";
 import type { TrainingSession } from "../../../src/v5/domain/training/session.js";
 
 const stamp = "2026-08-08T03:00:00.000Z";
 
-function makeContext(exposureCount = 3): CoachContext {
+function makeContext(exposureCount = 3): CoachContextWithoutReadiness {
   const sets = Array.from({ length: exposureCount }, (_, index) => ({
     id: `set-${index + 1}`,
     sessionId: `session-${index + 1}`,
@@ -50,9 +53,25 @@ function makeContext(exposureCount = 3): CoachContext {
     },
     recentSets: sets,
     recentSessions: sessions,
-    readiness: sessions.map((session) => ({ sessionId: session.id, energy: "normal" as const, soreness: "none" as const, painExerciseIds: [] })),
     programmingPolicyVersion: "1.0.0",
     coachPolicyVersion: "1.0.0",
+  };
+}
+
+function readinessForContext(context: CoachContextWithoutReadiness): { listRecent(limit: number): Promise<ReadinessEntry[]> } {
+  return {
+    async listRecent(limit: number): Promise<ReadinessEntry[]> {
+      return context.recentSessions.slice(0, limit).map((session, index) => ({
+        id: `readiness-${index + 1}`,
+        sessionId: session.id,
+        energy: "normal",
+        soreness: "none",
+        painExerciseIds: [],
+        createdAt: session.completedAt ?? session.updatedAt,
+        updatedAt: session.completedAt ?? session.updatedAt,
+        revision: 1,
+      }));
+    },
   };
 }
 
@@ -69,8 +88,10 @@ class MemoryRecommendations implements RecommendationRepository {
 
 test("persists recommendation as pending with evidence and policy provenance", async () => {
   const recommendations = new MemoryRecommendations();
-  const result = await evaluateCoachForCompletedSession(makeContext(3), {
+  const context = makeContext(3);
+  const result = await evaluateCoachForCompletedSession(context, {
     recommendations,
+    readiness: readinessForContext(context),
     ids: { next: () => "recommendation-1" },
     clock: { now: () => stamp },
   });
@@ -84,8 +105,10 @@ test("persists recommendation as pending with evidence and policy provenance", a
 
 test("persists no recommendation when Coach has insufficient evidence", async () => {
   const recommendations = new MemoryRecommendations();
-  const result = await evaluateCoachForCompletedSession(makeContext(1), {
+  const context = makeContext(1);
+  const result = await evaluateCoachForCompletedSession(context, {
     recommendations,
+    readiness: readinessForContext(context),
     ids: { next: () => "recommendation-1" },
     clock: { now: () => stamp },
   });
